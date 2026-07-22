@@ -212,6 +212,23 @@
     text-shadow:0 0 20px rgba(56,189,248,.8);letter-spacing:2px;animation:bursttxt .9s ease-out forwards}
   @keyframes bursttxt{0%{opacity:0;transform:scale(.6)}30%{opacity:1;transform:scale(1.1)}100%{opacity:0;transform:scale(1.4)}}
 
+  /* System confirm modal */
+  #sysmodal{position:fixed;inset:0;z-index:85;display:none;place-items:center;padding:22px;
+    background:rgba(3,6,12,.74);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+  #sysmodal.show{display:grid;animation:smfade .18s ease-out}
+  @keyframes smfade{from{opacity:0}to{opacity:1}}
+  #sysmodal .sm-box{width:100%;max-width:400px;background:linear-gradient(180deg,rgba(8,18,40,.98),rgba(8,13,26,.97));
+    border:1px solid var(--accent);border-radius:14px;box-shadow:0 0 40px rgba(56,189,248,.42);padding:22px 20px;
+    animation:smpop .3s cubic-bezier(.2,.9,.3,1.1)}
+  #sysmodal.danger .sm-box{border-color:var(--bad);box-shadow:0 0 40px rgba(248,113,113,.4)}
+  @keyframes smpop{0%{transform:scale(.9) translateY(10px);opacity:0}100%{transform:scale(1) translateY(0);opacity:1}}
+  #sysmodal .sm-tag{font-family:var(--mono);font-size:10px;letter-spacing:3px;color:var(--accent);font-weight:700;text-transform:uppercase}
+  #sysmodal.danger .sm-tag{color:var(--bad)}
+  #sysmodal .sm-title{font-family:var(--mono);font-size:17px;font-weight:700;color:var(--ink);margin:6px 0 10px;letter-spacing:.5px}
+  #sysmodal .sm-line{font-size:13.5px;color:var(--ink-2);line-height:1.55;margin-bottom:4px}
+  #sysmodal .sm-btns{display:flex;gap:10px;margin-top:18px}
+  #sysmodal .sm-btns .btn{flex:1}
+
   /* Awakening intro */
   #awaken{position:fixed;inset:0;z-index:80;background:var(--bg);display:none;flex-direction:column;
     justify-content:center;align-items:center;text-align:center;padding:32px 26px;gap:18px}
@@ -243,6 +260,7 @@
 <div id="sysnotify"></div>
 <div id="burst"></div>
 <div id="awaken"></div>
+<div id="sysmodal"></div>
 
 <script>
 (function(){
@@ -539,6 +557,24 @@ function cardBucket(id){var r=S.srs[id];if(!r||r.reps===0)return "new";if(r.inte
 /* ---------- flash toast ---------- */
 var flashT;
 function toast(m){var f=document.getElementById("flash");f.textContent=m;f.classList.add("show");clearTimeout(flashT);flashT=setTimeout(function(){f.classList.remove("show");},1600);}
+/* Themed in-app confirmation (replaces native confirm) */
+var _modalYes=null;
+function sysConfirm(o){
+  _modalYes=o.onYes||null;
+  var m=document.getElementById("sysmodal");
+  m.className=o.danger?"danger":"";
+  var yStyle=o.danger?' style="background:var(--bad);border-color:transparent;color:#1a0508"':'';
+  m.innerHTML='<div class="sm-box" role="alertdialog" aria-modal="true">'+
+    '<div class="sm-tag">'+esc(o.tag||"THE SYSTEM")+'</div>'+
+    '<div class="sm-title">'+esc(o.title||"")+'</div>'+
+    (o.lines||[]).map(function(l){return '<div class="sm-line">'+esc(l)+'</div>';}).join('')+
+    '<div class="sm-btns">'+
+      '<button class="btn ghost" data-act="modal-no">'+esc(o.no||"CANCEL")+'</button>'+
+      '<button class="btn primary" data-act="modal-yes"'+yStyle+'>'+esc(o.yes||"PROCEED")+'</button>'+
+    '</div></div>';
+  (window.requestAnimationFrame||function(f){setTimeout(f,16);})(function(){m.classList.add("show");});
+}
+function closeSysModal(){var m=document.getElementById("sysmodal");m.classList.remove("show");m.innerHTML="";_modalYes=null;}
 
 /* ---------- misc helpers ---------- */
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
@@ -1254,8 +1290,10 @@ document.addEventListener("click",function(ev){
     case "markq":if(!run)return;run.mark[run.qs[run.i].id]=!run.mark[run.qs[run.i].id];drawRunner();break;
     case "showpal":showPalette();break;
     case "closepal":drawRunner();break;
-    case "submit":if(confirm("Submit the raid now?"))finishTest();break;
-    case "quit":if(confirm("Retreat from this gate without saving?"))closeRun();break;
+    case "modal-yes":var _cb=_modalYes;closeSysModal();if(_cb)_cb();break;
+    case "modal-no":closeSysModal();break;
+    case "submit":sysConfirm({tag:"THE SYSTEM",title:"SUBMIT RAID",lines:["End the raid now and reveal your clear-rank?"],yes:"SUBMIT",no:"KEEP GOING",onYes:finishTest});break;
+    case "quit":sysConfirm({tag:"THE SYSTEM",title:"RETREAT FROM GATE",lines:["Abandon this raid? Your progress in it will be lost."],yes:"RETREAT",no:"STAY",danger:true,onYes:closeRun});break;
     case "reviewtest":drawReview();break;
     case "backscore":drawScorecard(S.history[S.history.length-1]);break;
     case "closerun":closeRun();break;
@@ -1267,7 +1305,7 @@ document.addEventListener("click",function(ev){
     case "addq":addQuestion();break;
     case "export":exportData();break;
     case "import":importData();break;
-    case "reset":if(confirm("Erase ALL progress, shadows, titles and history on this device?")){localStorage.removeItem(KEY);S=load();toast("World reset");go("home");if(!S.game.awakened)awakening();}break;
+    case "reset":sysConfirm({tag:"⚠ SYSTEM WARNING",title:"RESET WORLD",lines:["Erase ALL progress, shadows, titles and history on this device?","This cannot be undone."],yes:"ERASE ALL",no:"CANCEL",danger:true,onYes:function(){localStorage.removeItem(KEY);S=load();toast("World reset");go("home");if(!S.game.awakened)awakening();}});break;
   }
 });
 

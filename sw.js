@@ -1,7 +1,7 @@
 /* NEET SS System — service worker (offline-first app shell).
    The whole app is a single index.html with inlined CSS/JS and data-URI icons,
    so caching the shell = full offline capability. */
-var CACHE = 'neetss-sys-v2';
+var CACHE = 'neetss-sys-v3';
 var SHELL = ['./', './index.html', './manifest.webmanifest'];
 
 self.addEventListener('install', function (e) {
