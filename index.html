@@ -260,12 +260,18 @@ function injectHead(){
   meta("theme-color","#05060a");
   try{
     var icon=makeIcon();
-    var man={name:"NEET SS System",short_name:"NEET SS",display:"standalone",
-      background_color:"#05060a",theme_color:"#05060a",start_url:".",scope:".",
-      icons:[{src:icon,sizes:"192x192",type:"image/png"},{src:icon,sizes:"512x512",type:"image/png"}]};
-    var url=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:"application/manifest+json"}));
-    var l=document.createElement("link");l.rel="manifest";l.href=url;head.appendChild(l);
     var a=document.createElement("link");a.rel="apple-touch-icon";a.href=icon;head.appendChild(a);
+    var l=document.createElement("link");l.rel="manifest";
+    if(location.protocol==="http:"||location.protocol==="https:"){
+      l.href="manifest.webmanifest"; /* real same-origin file → reliably installable */
+    }else{
+      /* single-file / file:// use: synthesize an inline manifest so it still works standalone */
+      var man={name:"NEET SS System",short_name:"NEET SS",display:"standalone",
+        background_color:"#05060a",theme_color:"#05060a",start_url:".",scope:".",
+        icons:[{src:icon,sizes:"192x192",type:"image/png"},{src:icon,sizes:"512x512",type:"image/png"}]};
+      l.href=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:"application/manifest+json"}));
+    }
+    head.appendChild(l);
   }catch(e){}
 }
 function makeIcon(){
@@ -279,6 +285,13 @@ function makeIcon(){
   return c.toDataURL("image/png");
 }
 injectHead();
+
+/* ---------- service worker (offline app shell) ---------- */
+if("serviceWorker" in navigator && (location.protocol==="http:"||location.protocol==="https:")){
+  window.addEventListener("load",function(){
+    navigator.serviceWorker.register("sw.js").catch(function(){});
+  });
+}
 
 /* ---------- persistence ---------- */
 var KEY="neetss_v1";
@@ -385,7 +398,15 @@ var SEED_C=[
  {id:"cp5",s:"Pediatrics",f:"Most common cause of congenital stridor",b:"Laryngomalacia."},
  {id:"cp6",s:"Pediatrics",f:"Jaundice within first 24 hours of life",b:"Always pathological (haemolysis / sepsis / TORCH)."},
  {id:"cp7",s:"Pediatrics",f:"Social smile appears at",b:"6–8 weeks (about 2 months)."},
- {id:"cp8",s:"Pediatrics",f:"APGAR score components",b:"Appearance, Pulse, Grimace, Activity, Respiration."}
+ {id:"cp8",s:"Pediatrics",f:"APGAR score components",b:"Appearance, Pulse, Grimace, Activity, Respiration."},
+ {"id":"cm9","s":"General Medicine","f":"Most specific antibody for rheumatoid arthritis","b":"Anti-CCP (anti-cyclic citrullinated peptide) — high specificity, predicts erosive disease."},
+ {"id":"cm10","s":"General Medicine","f":"Auer rods → which leukaemia?","b":"Acute myeloid leukaemia (AML)."},
+ {"id":"cs9","s":"General Surgery","f":"Courvoisier's law","b":"Painless jaundice with a palpable, non-tender gallbladder is unlikely to be due to stones — suspect periampullary/pancreatic head malignancy."},
+ {"id":"cs10","s":"General Surgery","f":"Commonest thyroid cancer","b":"Papillary carcinoma (~80%); spreads via lymphatics."},
+ {"id":"co9","s":"Obstetrics & Gynaecology","f":"The 4 Ts of postpartum haemorrhage","b":"Tone (atony — commonest), Tissue (retained products), Trauma, Thrombin (coagulopathy)."},
+ {"id":"co10","s":"Obstetrics & Gynaecology","f":"Seizure prophylaxis/treatment in eclampsia","b":"Magnesium sulfate (Pritchard or Zuspan regimen) — superior to phenytoin/diazepam."},
+ {"id":"cp9","s":"Pediatrics","f":"Koplik spots","b":"Pathognomonic of measles; precede the rash."},
+ {"id":"cp10","s":"Pediatrics","f":"Commonest cyanotic CHD (beyond infancy)","b":"Tetralogy of Fallot; TGA is commonest presenting in the neonatal period."}
 ];
 
 var SYLLABUS={
@@ -468,7 +489,31 @@ var SEED_Q_EXT=[
 {"id":"p23","s":"Pediatrics","t":"Haematology-oncology","q":"The most common cause of microcytic hypochromic anaemia in children is:","o":["Iron deficiency","Beta-thalassaemia trait","Lead poisoning","Sideroblastic anaemia"],"a":0,"e":"Iron deficiency is by far the commonest cause of microcytic hypochromic anaemia in childhood."},
 {"id":"p24","s":"Pediatrics","t":"Haematology-oncology","q":"The most common primary renal malignancy in children is:","o":["Wilms tumour (nephroblastoma)","Renal cell carcinoma","Neuroblastoma","Angiomyolipoma"],"a":0,"e":"Wilms tumour (nephroblastoma) is the commonest renal malignancy of childhood, typically age 2-5 years."},
 {"id":"p25","s":"Pediatrics","t":"Neurology","q":"Ascending symmetric flaccid paralysis with albuminocytologic dissociation in the CSF is characteristic of:","o":["Guillain-Barré syndrome","Poliomyelitis","Transverse myelitis","Myasthenia gravis"],"a":0,"e":"Albuminocytologic dissociation (raised CSF protein with normal cell count) with ascending paralysis is classic for GBS."},
-{"id":"p26","s":"Pediatrics","t":"Genetics/metabolic","q":"Phenylketonuria results from deficiency of which enzyme?","o":["Homogentisate oxidase","Phenylalanine hydroxylase","Tyrosinase","Branched-chain ketoacid dehydrogenase"],"a":1,"e":"Classic PKU is due to deficiency of phenylalanine hydroxylase, causing phenylalanine accumulation."}
+{"id":"p26","s":"Pediatrics","t":"Genetics/metabolic","q":"Phenylketonuria results from deficiency of which enzyme?","o":["Homogentisate oxidase","Phenylalanine hydroxylase","Tyrosinase","Branched-chain ketoacid dehydrogenase"],"a":1,"e":"Classic PKU is due to deficiency of phenylalanine hydroxylase, causing phenylalanine accumulation."},
+ {"id":"m27","s":"General Medicine","t":"Cardiology","q":"The most common cause of aortic stenosis in an elderly (>70 year) patient is:","o":["Rheumatic heart disease","Congenital bicuspid valve","Degenerative (senile) calcification","Infective endocarditis"],"a":2,"e":"Age-related degenerative calcific stenosis of a tricuspid aortic valve is the commonest cause in the elderly; a bicuspid valve predominates in younger adults."},
+ {"id":"m28","s":"General Medicine","t":"Endocrinology","q":"In iodine-sufficient regions, the most common cause of primary hypothyroidism is:","o":["Iodine deficiency","Hashimoto (chronic autoimmune) thyroiditis","Post-thyroidectomy","Drug-induced"],"a":1,"e":"Chronic autoimmune (Hashimoto) thyroiditis is the leading cause of hypothyroidism where iodine intake is adequate."},
+ {"id":"m29","s":"General Medicine","t":"Neurology","q":"The most common type of stroke is:","o":["Ischaemic (thromboembolic) infarction","Intracerebral haemorrhage","Subarachnoid haemorrhage","Cerebral venous thrombosis"],"a":0,"e":"Ischaemic stroke accounts for roughly 80% of all strokes; haemorrhagic types make up the remainder."},
+ {"id":"m30","s":"General Medicine","t":"Infectious disease","q":"The drug of choice for serious methicillin-resistant Staphylococcus aureus (MRSA) infection is:","o":["Cloxacillin","Vancomycin","Ceftriaxone","Gentamicin"],"a":1,"e":"Vancomycin (or alternatives such as linezolid/daptomycin) is first-line for serious MRSA infection; beta-lactams are ineffective."},
+ {"id":"m31","s":"General Medicine","t":"Gastroenterology/Hepatology","q":"The most common cause of upper gastrointestinal bleeding is:","o":["Oesophageal varices","Peptic ulcer disease","Mallory-Weiss tear","Gastric carcinoma"],"a":1,"e":"Peptic ulcer disease is the single commonest cause of acute upper GI haemorrhage."},
+ {"id":"m32","s":"General Medicine","t":"Respiratory","q":"The gold-standard investigation for the diagnosis of obstructive sleep apnoea is:","o":["Overnight pulse oximetry","Polysomnography","Epworth Sleepiness Scale","Spirometry"],"a":1,"e":"Attended overnight polysomnography (sleep study) is the diagnostic gold standard, quantifying the apnoea-hypopnoea index."},
+ {"id":"s27","s":"General Surgery","t":"Breast","q":"The most common histological type of invasive breast carcinoma is:","o":["Invasive lobular carcinoma","Invasive ductal carcinoma (NST)","Medullary carcinoma","Mucinous carcinoma"],"a":1,"e":"Invasive ductal carcinoma of no special type accounts for ~70-80% of invasive breast cancers."},
+ {"id":"s28","s":"General Surgery","t":"Urology","q":"The most common composition of urinary tract calculi is:","o":["Calcium oxalate","Struvite (magnesium ammonium phosphate)","Uric acid","Cystine"],"a":0,"e":"Calcium oxalate stones are the commonest, accounting for the majority of renal calculi."},
+ {"id":"s29","s":"General Surgery","t":"Hernia","q":"The most common type of abdominal wall hernia in both sexes is:","o":["Femoral hernia","Inguinal hernia","Umbilical hernia","Incisional hernia"],"a":1,"e":"Inguinal hernia is the commonest hernia in both males and females (though femoral hernia is relatively more frequent in women than in men)."},
+ {"id":"s30","s":"General Surgery","t":"GI surgery","q":"The most common site of colorectal carcinoma is the:","o":["Caecum","Transverse colon","Rectosigmoid region","Splenic flexure"],"a":2,"e":"The rectosigmoid region is the commonest site of colorectal cancer."},
+ {"id":"s31","s":"General Surgery","t":"Endocrine surgery","q":"The most common cause of primary hyperparathyroidism is:","o":["Parathyroid hyperplasia","Solitary parathyroid adenoma","Parathyroid carcinoma","Multiple endocrine neoplasia"],"a":1,"e":"A single (solitary) parathyroid adenoma causes ~80-85% of primary hyperparathyroidism."},
+ {"id":"s32","s":"General Surgery","t":"Burns","q":"Using the rule of nines in an adult, the surface of one entire lower limb represents what percentage of total body surface area?","o":["9%","18%","4.5%","36%"],"a":1,"e":"Each whole lower limb is 18% (anterior 9% + posterior 9%) in the adult rule of nines; each upper limb is 9%."},
+ {"id":"o27","s":"Obstetrics & Gynaecology","t":"Contraception","q":"Which reversible contraceptive method has the lowest typical-use failure rate?","o":["Combined oral contraceptive pill","Etonogestrel subdermal implant","Male condom","Depot medroxyprogesterone injection"],"a":1,"e":"Long-acting reversible contraceptives — the subdermal implant and intrauterine devices — have the lowest typical-use failure rates (implant <0.1%), being independent of user compliance."},
+ {"id":"o28","s":"Obstetrics & Gynaecology","t":"Obstetric emergency","q":"The most common cause of secondary postpartum haemorrhage is:","o":["Uterine atony","Retained products of conception","Genital tract trauma","Coagulopathy"],"a":1,"e":"Secondary PPH (24 hours to 12 weeks postpartum) is most often due to retained products of conception, frequently with associated endometritis."},
+ {"id":"o29","s":"Obstetrics & Gynaecology","t":"Gynae oncology","q":"The most common benign germ-cell tumour of the ovary is:","o":["Dysgerminoma","Mature cystic teratoma (dermoid cyst)","Yolk sac tumour","Serous cystadenoma"],"a":1,"e":"The mature cystic teratoma (dermoid cyst) is the commonest ovarian germ-cell tumour and the commonest ovarian neoplasm in young women."},
+ {"id":"o30","s":"Obstetrics & Gynaecology","t":"Antenatal care","q":"The most accurate ultrasound parameter for estimating gestational age in the first trimester is:","o":["Biparietal diameter","Crown-rump length","Femur length","Gestational sac diameter"],"a":1,"e":"Crown-rump length between 7 and 13 weeks gives the most accurate ultrasound dating of pregnancy."},
+ {"id":"o31","s":"Obstetrics & Gynaecology","t":"Gynae oncology","q":"The most common histological type of carcinoma of the cervix is:","o":["Adenocarcinoma","Squamous cell carcinoma","Small cell carcinoma","Clear cell carcinoma"],"a":1,"e":"Squamous cell carcinoma accounts for the majority (~70-80%) of cervical cancers."},
+ {"id":"o32","s":"Obstetrics & Gynaecology","t":"Antenatal care","q":"In a non-sensitised Rh-negative pregnant woman, routine antenatal anti-D immunoglobulin prophylaxis is classically given at:","o":["12 weeks","20 weeks","28 weeks","36 weeks"],"a":2,"e":"Routine antenatal anti-D prophylaxis is given at 28 weeks (with a further dose within 72 hours of delivery of an Rh-positive baby) to prevent Rh isoimmunisation."},
+ {"id":"p27","s":"Pediatrics","t":"Neonatology","q":"In developed countries, the most common organism causing early-onset neonatal sepsis is:","o":["Escherichia coli","Group B Streptococcus (Streptococcus agalactiae)","Listeria monocytogenes","Staphylococcus aureus"],"a":1,"e":"Group B Streptococcus is the leading cause of early-onset neonatal sepsis in developed countries; E. coli is the next most common."},
+ {"id":"p28","s":"Pediatrics","t":"Nutrition","q":"Bilateral pitting pedal oedema in a severely malnourished child with relatively preserved subcutaneous fat is characteristic of:","o":["Marasmus","Kwashiorkor","Nutritional dwarfism","Vitamin A deficiency"],"a":1,"e":"Oedema, along with skin and hair changes and a comparatively preserved subcutaneous fat, characterises kwashiorkor; marasmus shows severe wasting without oedema."},
+ {"id":"p29","s":"Pediatrics","t":"Immunisation","q":"BCG vaccination given at birth chiefly protects the infant against:","o":["Pulmonary tuberculosis reactivation","Miliary tuberculosis and tuberculous meningitis","Leprosy only","Latent tuberculosis infection"],"a":1,"e":"BCG is most effective at preventing the severe disseminated forms of childhood TB — miliary TB and TB meningitis."},
+ {"id":"p30","s":"Pediatrics","t":"Growth & development","q":"The social smile (smiling in response to a face) normally appears by:","o":["Birth","6-8 weeks","4 months","6 months"],"a":1,"e":"The social smile is an important early developmental milestone, appearing by about 6-8 weeks of age."},
+ {"id":"p31","s":"Pediatrics","t":"Genetics/metabolic","q":"The most common chromosomal mechanism causing Down syndrome is:","o":["Robertsonian translocation","Meiotic non-disjunction (trisomy 21)","Mosaicism","Chromosomal deletion"],"a":1,"e":"Free trisomy 21 due to meiotic non-disjunction accounts for ~95% of Down syndrome cases and is associated with advanced maternal age."},
+ {"id":"p32","s":"Pediatrics","t":"Respiratory","q":"The most common causative agent of acute bronchiolitis in infants is:","o":["Parainfluenza virus","Respiratory syncytial virus","Adenovirus","Rhinovirus"],"a":1,"e":"Respiratory syncytial virus (RSV) is the leading cause of bronchiolitis in infants under 2 years."}
 ];
 function allQ(){return SEED_Q.concat(SEED_Q_EXT).concat(S.customQ);}
 function allC(){return SEED_C.concat(S.customC);}
@@ -1176,6 +1221,7 @@ document.addEventListener("click",function(ev){
   if(d.jump!=null&&run){run.i=Math.max(0,Math.min(+d.jump,run.qs.length-1));drawRunner();return;}
   if(d.grade!=null&&rev){
     var card=rev.cards[rev.i],grade=+d.grade;
+    if(!card){return;} /* review already complete (i out of range) — ignore stray grade */
     var prevInt=srsOf(card.id).interval;
     gradeCard(card.id,grade);
     dailyReset();S.game.daily.cards=(S.game.daily.cards||0)+1;
