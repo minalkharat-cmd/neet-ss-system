@@ -1,0 +1,1233 @@
+<style>
+  :root{
+    --bg:#05060a; --surface:#0a1020; --surface-2:#0f1830; --surface-3:#16224a;
+    --ink:#dceaff; --ink-2:#8fa6d8; --ink-3:#56688f;
+    --line:#1b2c52; --line-glow:#2a4a8c;
+    --accent:#38bdf8; --accent-ink:#7dd3fc; --accent-soft:#0c1f3a;
+    --glow:#22d3ee; --glow-strong:#5eead4;
+    --good:#34d399; --good-soft:#08231b; --bad:#fb7185; --bad-soft:#2a0d16;
+    --warn:#fbbf24; --warn-soft:#2a1e06; --gold:#fcd34d; --gold-soft:#2a2106;
+    --rank-E:#8a93a6; --rank-D:#34d399; --rank-C:#38bdf8; --rank-B:#a78bfa;
+    --rank-A:#fb923c; --rank-S:#f87171; --rank-N:#fcd34d;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+    --serif:Georgia,"Iowan Old Style","Times New Roman",serif;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --r:14px; --r-sm:10px;
+    --glow-sm:0 0 0 1px var(--line-glow),0 0 14px rgba(56,189,248,.10);
+    --glow-md:0 0 0 1px var(--accent),0 0 22px rgba(56,189,248,.22);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{background:var(--bg)}
+  body{margin:0;color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.45;
+    -webkit-text-size-adjust:100%;overflow-x:hidden;overscroll-behavior-y:none;
+    background:
+      radial-gradient(120% 80% at 50% -10%,rgba(56,189,248,.10),transparent 60%),
+      radial-gradient(90% 60% at 50% 120%,rgba(34,211,238,.06),transparent 60%),
+      var(--bg);
+    background-attachment:fixed;}
+  h1,h2,h3{margin:0;text-wrap:balance}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  input,select,textarea{font-family:inherit;font-size:16px}
+  .tnum{font-variant-numeric:tabular-nums}
+  .mono{font-family:var(--mono)}
+
+  /* App shell */
+  #app{max-width:640px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 8px) 16px 120px;min-height:100vh}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:6px 2px 14px;position:sticky;top:0;z-index:5}
+  .wordmark{font-weight:800;font-size:18px;letter-spacing:1.5px;display:flex;align-items:center;gap:10px;text-transform:uppercase}
+  .wordmark .dot{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--glow));
+    display:grid;place-items:center;color:#03101f;font-family:var(--mono);font-weight:800;font-size:13px;
+    box-shadow:0 0 16px rgba(56,189,248,.5)}
+  .wordmark small{display:block;font-family:var(--mono);font-weight:500;font-size:9px;letter-spacing:2px;
+    text-transform:uppercase;color:var(--accent-ink)}
+  .icon-btn{width:40px;height:40px;border-radius:10px;background:var(--surface);box-shadow:var(--glow-sm);
+    display:grid;place-items:center;font-size:17px;color:var(--accent-ink)}
+
+  /* System panels */
+  .card,.win{background:linear-gradient(180deg,var(--surface),#080d1a);border-radius:var(--r);
+    padding:16px;margin-bottom:14px;position:relative;
+    border:1px solid var(--line);box-shadow:var(--glow-sm)}
+  .win{border-color:var(--line-glow)}
+  .win::before,.win::after{content:"";position:absolute;width:14px;height:14px;pointer-events:none}
+  .win::before{top:-1px;left:-1px;border-top:2px solid var(--accent);border-left:2px solid var(--accent)}
+  .win::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--accent);border-right:2px solid var(--accent)}
+  .card.tight{padding:13px}
+  .eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:2px;text-transform:uppercase;color:var(--accent-ink);font-weight:600}
+  .muted{color:var(--ink-2)} .dim{color:var(--ink-3)}
+  .glow{color:var(--accent);text-shadow:0 0 10px rgba(56,189,248,.6)}
+  .gold{color:var(--gold);text-shadow:0 0 10px rgba(252,211,77,.5)}
+
+  /* Section header = system label */
+  .sec-h{display:flex;align-items:baseline;justify-content:space-between;margin:22px 2px 10px}
+  .sec-h h2{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+    color:var(--accent-ink)}
+  .sec-h h2::before{content:"[ ";color:var(--ink-3)} .sec-h h2::after{content:" ]";color:var(--ink-3)}
+  .sec-h a{font-size:12px;color:var(--accent);font-weight:600;font-family:var(--mono)}
+
+  /* Buttons — cut-corner system style */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 18px;
+    font-weight:700;font-size:14.5px;letter-spacing:.3px;background:var(--surface-2);color:var(--ink);
+    border:1px solid var(--line-glow);width:100%;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+  .btn.primary{background:linear-gradient(135deg,var(--accent),var(--glow));color:#03101f;border-color:transparent;
+    box-shadow:0 0 20px rgba(56,189,248,.35)}
+  .btn.ghost{background:transparent;border-color:var(--line)}
+  .btn.sm{padding:9px 13px;font-size:12.5px;width:auto}
+  .btn:active{transform:scale(.98)} .btn:disabled{opacity:.4}
+  .btn-row{display:flex;gap:10px}
+
+  /* Chips */
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{padding:8px 13px;border-radius:999px;font-size:13px;font-weight:700;letter-spacing:.3px;
+    background:var(--surface-2);border:1.5px solid var(--line);color:var(--ink-2);font-family:var(--mono)}
+  .chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);box-shadow:0 0 12px rgba(56,189,248,.25)}
+
+  /* Stat tiles */
+  .grid{display:grid;gap:12px} .g2{grid-template-columns:1fr 1fr} .g3{grid-template-columns:1fr 1fr 1fr}
+  .stat{background:var(--surface);border-radius:var(--r-sm);padding:14px;border:1px solid var(--line);box-shadow:var(--glow-sm)}
+  .stat .n{font-family:var(--mono);font-size:28px;line-height:1;font-weight:700;color:var(--accent)}
+  .stat .n small{font-size:13px;color:var(--ink-3);font-weight:600}
+  .stat .l{font-family:var(--mono);font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-top:7px}
+
+  /* Progress / XP bar */
+  .bar{height:8px;border-radius:99px;background:var(--surface-3);overflow:hidden;border:1px solid var(--line)}
+  .bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--glow-strong));border-radius:99px;
+    box-shadow:0 0 10px rgba(56,189,248,.6);transition:width .6s ease}
+  .bar.good>i{background:linear-gradient(90deg,var(--good),#6ee7b7);box-shadow:0 0 10px rgba(52,211,153,.5)}
+  .bar.warn>i{background:linear-gradient(90deg,var(--warn),#fde68a)} .bar.bad>i{background:linear-gradient(90deg,var(--bad),#fda4af)}
+
+  /* Bottom nav */
+  .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(8,13,26,.92);
+    backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);
+    border-top:1px solid var(--line-glow);padding:8px 6px calc(env(safe-area-inset-bottom) + 8px);
+    display:flex;justify-content:space-around;max-width:640px;margin:0 auto;
+    box-shadow:0 -8px 24px rgba(0,0,0,.5)}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 2px;
+    color:var(--ink-3);font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:1px;border-radius:10px}
+  .tab svg{width:21px;height:21px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .tab.on{color:var(--accent);text-shadow:0 0 10px rgba(56,189,248,.5)}
+  .tab .badge{position:absolute;transform:translate(13px,-6px);background:var(--bad);color:#1a0508;
+    font-size:9.5px;font-weight:800;min-width:15px;height:15px;border-radius:99px;display:grid;place-items:center;padding:0 3px}
+
+  /* Lists */
+  .row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .row:last-child{border-bottom:none} .row .grow{flex:1;min-width:0}
+  .pill{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.5px;padding:3px 8px;border-radius:99px;
+    background:var(--surface-2);color:var(--ink-2);white-space:nowrap;border:1px solid var(--line)}
+  .pill.good{background:var(--good-soft);color:var(--good);border-color:var(--good)}
+  .pill.bad{background:var(--bad-soft);color:var(--bad);border-color:var(--bad)}
+  .pill.warn{background:var(--warn-soft);color:var(--warn);border-color:var(--warn)}
+  .pill.acc{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+
+  /* Rank badge */
+  .rank{font-family:var(--mono);font-weight:800;font-size:13px;letter-spacing:1px;padding:4px 10px;border-radius:6px;
+    border:1px solid currentColor;display:inline-grid;place-items:center}
+  .r-E{color:var(--rank-E)} .r-D{color:var(--rank-D)} .r-C{color:var(--rank-C)} .r-B{color:var(--rank-B)}
+  .r-A{color:var(--rank-A)} .r-S{color:var(--rank-S);text-shadow:0 0 8px rgba(248,113,113,.6)} .r-N{color:var(--rank-N);text-shadow:0 0 10px rgba(252,211,77,.6)}
+
+  /* Form */
+  label.f{display:block;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--ink-2);margin:12px 0 5px;letter-spacing:.8px;text-transform:uppercase}
+  .inp{width:100%;padding:12px 13px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--ink)}
+  .inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 12px rgba(56,189,248,.3)}
+  textarea.inp{min-height:64px;resize:vertical;line-height:1.4}
+
+  /* Quest checklist */
+  .chk{display:flex;align-items:center;gap:11px;padding:11px 2px;border-bottom:1px solid var(--line)}
+  .chk:last-child{border-bottom:none}
+  .box{width:22px;height:22px;border-radius:6px;border:2px solid var(--line-glow);display:grid;place-items:center;flex:none;color:transparent;font-size:13px}
+  .chk.on .box{background:var(--accent);border-color:var(--accent);color:#03101f;box-shadow:0 0 12px rgba(56,189,248,.5)}
+  .chk.on .lbl{color:var(--ink-3);text-decoration:line-through}
+
+  /* Overlay */
+  .overlay{position:fixed;inset:0;z-index:40;background:var(--bg);display:none;flex-direction:column;
+    padding:calc(env(safe-area-inset-top) + 10px) 16px calc(env(safe-area-inset-bottom) + 16px)}
+  .overlay.open{display:flex}
+  .ov-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+  .ov-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .timer{font-family:var(--mono);font-weight:700;font-size:17px;padding:5px 12px;border-radius:99px;
+    background:var(--surface-2);border:1px solid var(--line-glow);color:var(--accent-ink)}
+  .timer.low{color:var(--bad);background:var(--bad-soft);border-color:var(--bad);animation:pulse 1s infinite}
+  @keyframes pulse{50%{opacity:.5}}
+
+  /* Question option */
+  .opt{display:flex;gap:12px;align-items:flex-start;padding:14px;border-radius:12px;border:1.5px solid var(--line);
+    background:var(--surface);margin-bottom:10px;width:100%;text-align:left}
+  .opt .k{width:26px;height:26px;border-radius:7px;background:var(--surface-2);display:grid;place-items:center;
+    font-family:var(--mono);font-weight:700;font-size:13px;flex:none;color:var(--ink-2)}
+  .opt.sel{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 14px rgba(56,189,248,.25)}
+  .opt.sel .k{background:var(--accent);color:#03101f}
+  .opt.correct{border-color:var(--good);background:var(--good-soft)} .opt.correct .k{background:var(--good);color:#042}
+  .opt.wrong{border-color:var(--bad);background:var(--bad-soft)} .opt.wrong .k{background:var(--bad);color:#2a0508}
+
+  .palette{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+  .pnum{aspect-ratio:1;border-radius:9px;display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:14px;
+    background:var(--surface-2);border:1.5px solid var(--line);color:var(--ink-2)}
+  .pnum.ans{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+  .pnum.mark{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+  .pnum.cur{outline:2px solid var(--accent);outline-offset:1px}
+
+  /* Flashcard = shadow extraction core */
+  .fc{min-height:230px;border-radius:18px;background:radial-gradient(120% 80% at 50% 0%,var(--surface-3),var(--surface));
+    border:1px solid var(--line-glow);display:flex;flex-direction:column;justify-content:center;align-items:center;
+    text-align:center;padding:28px 22px;gap:14px;box-shadow:0 0 24px rgba(56,189,248,.15)}
+  .fc .side{font-family:var(--mono);font-size:10.5px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);font-weight:700}
+  .fc .q{font-family:var(--serif);font-size:22px;line-height:1.3;font-weight:600}
+  .fc .a{font-size:17px;line-height:1.4;color:var(--ink);max-width:34ch}
+
+  .grade{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .grade button{padding:12px 4px;border-radius:11px;font-weight:700;font-size:13px;display:flex;flex-direction:column;gap:2px;
+    border:1.5px solid var(--line-glow);background:var(--surface);font-family:var(--mono)}
+  .grade button small{font-size:9.5px;font-weight:600;color:var(--ink-3)}
+  .grade .again{color:var(--bad)} .grade .hard{color:var(--warn)} .grade .good{color:var(--glow-strong)} .grade .easy{color:var(--good)}
+
+  .empty{text-align:center;padding:40px 20px;color:var(--ink-3)}
+  .empty .big{font-size:34px;margin-bottom:8px} .center{text-align:center}
+  .hr{height:1px;background:var(--line-glow);margin:14px 0}
+
+  /* Flash toast */
+  .flash{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:60;
+    background:var(--surface-2);color:var(--accent);padding:10px 16px;border-radius:99px;font-size:13px;font-weight:700;
+    font-family:var(--mono);border:1px solid var(--accent);box-shadow:var(--glow-md);
+    opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}
+  .flash.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
+
+  /* System notification banner */
+  #sysnotify{position:fixed;top:0;left:0;right:0;z-index:70;max-width:640px;margin:0 auto;
+    background:linear-gradient(180deg,rgba(8,18,40,.98),rgba(8,13,26,.95));border-bottom:1px solid var(--accent);
+    box-shadow:0 0 30px rgba(56,189,248,.4);padding:calc(env(safe-area-inset-top) + 14px) 16px 16px;
+    transform:translateY(-120%);transition:transform .45s cubic-bezier(.2,.9,.3,1.1);display:none}
+  #sysnotify.show{transform:translateY(0);display:block}
+  .sys-tag{font-family:var(--mono);font-size:10px;letter-spacing:3px;color:var(--accent);font-weight:700;text-transform:uppercase}
+  .sys-title{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--ink);margin:4px 0 6px;letter-spacing:.5px}
+  .sys-line{font-size:13.5px;color:var(--ink-2);line-height:1.5}
+  .sys-line strong{color:var(--accent-ink)}
+  .sys-x{position:absolute;top:calc(env(safe-area-inset-top) + 10px);right:14px;color:var(--ink-3);font-size:18px;width:30px;height:30px;display:grid;place-items:center}
+
+  /* Level-up burst */
+  #burst{position:fixed;inset:0;z-index:75;pointer-events:none;display:none;place-items:center}
+  #burst.show{display:grid}
+  #burst .ring{width:40px;height:40px;border-radius:50%;border:3px solid var(--accent);
+    box-shadow:0 0 40px rgba(56,189,248,.8);animation:burst .9s ease-out forwards}
+  @keyframes burst{0%{width:40px;height:40px;opacity:1}100%{width:520px;height:520px;opacity:0;border-width:1px}}
+  #burst .txt{position:absolute;font-family:var(--mono);font-weight:800;font-size:22px;color:var(--accent);
+    text-shadow:0 0 20px rgba(56,189,248,.8);letter-spacing:2px;animation:bursttxt .9s ease-out forwards}
+  @keyframes bursttxt{0%{opacity:0;transform:scale(.6)}30%{opacity:1;transform:scale(1.1)}100%{opacity:0;transform:scale(1.4)}}
+
+  /* Awakening intro */
+  #awaken{position:fixed;inset:0;z-index:80;background:var(--bg);display:none;flex-direction:column;
+    justify-content:center;align-items:center;text-align:center;padding:32px 26px;gap:18px}
+  #awaken.show{display:flex}
+  #awaken .a-icon{font-size:54px;animation:floaty 2.4s ease-in-out infinite;filter:drop-shadow(0 0 18px rgba(56,189,248,.7))}
+  @keyframes floaty{50%{transform:translateY(-10px)}}
+  #awaken .a-tag{font-family:var(--mono);font-size:11px;letter-spacing:4px;color:var(--accent);text-transform:uppercase}
+  #awaken .a-h{font-family:var(--serif);font-size:24px;line-height:1.35;font-weight:600;max-width:30ch}
+  #awaken .a-sub{font-size:14px;color:var(--ink-2);max-width:32ch;line-height:1.5}
+  #awaken .a-inp{width:100%;max-width:280px;padding:13px;border-radius:10px;border:1.5px solid var(--accent);
+    background:var(--surface);color:var(--ink);text-align:center;font-family:var(--mono);font-size:15px;
+    box-shadow:0 0 16px rgba(56,189,248,.3)}
+  #awaken .a-btn{width:100%;max-width:280px}
+
+  /* Shadow army grid */
+  .army-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:10px}
+  .shadow{background:linear-gradient(180deg,var(--surface-2),var(--surface));border:1px solid var(--line-glow);
+    border-radius:12px;padding:12px 6px;text-align:center;box-shadow:var(--glow-sm)}
+  .shadow .sg{font-size:24px;margin-bottom:4px;filter:drop-shadow(0 0 6px rgba(56,189,248,.4))}
+  .shadow .sn{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--accent-ink);letter-spacing:.5px;line-height:1.2}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div id="app"></div>
+<nav class="tabbar" id="tabbar"></nav>
+<div class="overlay" id="overlay"></div>
+<div class="flash" id="flash"></div>
+<div id="sysnotify"></div>
+<div id="burst"></div>
+<div id="awaken"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- runtime PWA head injection ---------- */
+function injectHead(){
+  var head=document.head; if(!head) return;
+  function meta(n,c,attr){var m=document.createElement("meta");m.setAttribute(attr||"name",n);m.setAttribute("content",c);head.appendChild(m);}
+  meta("viewport","width=device-width, initial-scale=1, viewport-fit=cover");
+  meta("apple-mobile-web-app-capable","yes");
+  meta("mobile-web-app-capable","yes");
+  meta("apple-mobile-web-app-status-bar-style","black-translucent");
+  meta("apple-mobile-web-app-title","NEET SS");
+  meta("theme-color","#05060a");
+  try{
+    var icon=makeIcon();
+    var man={name:"NEET SS System",short_name:"NEET SS",display:"standalone",
+      background_color:"#05060a",theme_color:"#05060a",start_url:".",scope:".",
+      icons:[{src:icon,sizes:"192x192",type:"image/png"},{src:icon,sizes:"512x512",type:"image/png"}]};
+    var url=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:"application/manifest+json"}));
+    var l=document.createElement("link");l.rel="manifest";l.href=url;head.appendChild(l);
+    var a=document.createElement("link");a.rel="apple-touch-icon";a.href=icon;head.appendChild(a);
+  }catch(e){}
+}
+function makeIcon(){
+  var c=document.createElement("canvas");c.width=c.height=512;var x=c.getContext("2d");
+  var g=x.createLinearGradient(0,0,512,512);g.addColorStop(0,"#0a1020");g.addColorStop(1,"#05060a");
+  x.fillStyle=g;x.fillRect(0,0,512,512);
+  x.fillStyle="rgba(56,189,248,.18)";x.beginPath();x.arc(256,256,200,0,7);x.fill();
+  x.strokeStyle="#38bdf8";x.lineWidth=14;x.strokeRect(40,40,432,432);
+  x.fillStyle="#38bdf8";x.font="700 230px ui-monospace,Menlo,Consolas,monospace";x.textAlign="center";x.textBaseline="middle";
+  x.shadowColor="rgba(56,189,248,.8)";x.shadowBlur=30;x.fillText("SS",256,256);
+  return c.toDataURL("image/png");
+}
+injectHead();
+
+/* ---------- persistence ---------- */
+var KEY="neetss_v1";
+var DEFAULT={examDate:"",srs:{},planner:{},history:[],lastDetails:null,
+  customQ:[],customC:[],activeDays:[],
+  game:{name:"",awakened:false,xp:0,level:1,ap:0,stats:{STR:10,VIT:10,AGI:10,INT:10,PER:10},
+    gatesCleared:0,titles:[],title:"",shadowIds:[],shadowCount:0,
+    daily:{date:"",q:0,cards:0,gates:0,claimed:false},muted:false}};
+var S=load();
+function clone(o){return JSON.parse(JSON.stringify(o));}
+function load(){
+  var r=null;try{r=JSON.parse(localStorage.getItem(KEY));}catch(e){}
+  if(!r||typeof r!=="object")return clone(DEFAULT);
+  r=Object.assign({},clone(DEFAULT),r);
+  if(!r.game)r.game={};
+  r.game=Object.assign({},clone(DEFAULT.game),r.game);
+  r.game.stats=Object.assign({},DEFAULT.game.stats,r.game.stats||{});
+  r.game.daily=Object.assign({},DEFAULT.game.daily,r.game.daily||{});
+  if(!Array.isArray(r.game.titles))r.game.titles=[];
+  if(!Array.isArray(r.game.shadowIds))r.game.shadowIds=[];
+  return r;
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+
+/* ---------- date helpers ---------- */
+function today(){return new Date().toISOString().slice(0,10);}
+function addDays(d,n){var t=new Date(d+"T00:00:00");t.setDate(t.getDate()+n);return t.toISOString().slice(0,10);}
+function dayDiff(a,b){return Math.round((new Date(b+"T00:00:00")-new Date(a+"T00:00:00"))/864e5);}
+function markActive(){var t=today();if(S.activeDays.indexOf(t)<0){S.activeDays.push(t);}}
+function streak(){var days=S.activeDays.slice().sort();if(!days.length)return 0;var set={};days.forEach(function(d){set[d]=1;});var t=today();if(!set[t]&&!set[addDays(t,-1)])return 0;var start=set[t]?t:addDays(t,-1);var n=0,c=start;while(set[c]){n++;c=addDays(c,-1);}return n;}/* ---------- SEED CONTENT (high-yield, editable) ---------- */
+var SUBJECTS=["General Medicine","General Surgery","Obstetrics & Gynaecology","Pediatrics"];
+var SUB_ABBR={"General Medicine":"MED","General Surgery":"SURG","Obstetrics & Gynaecology":"OBG","Pediatrics":"PED"};
+
+var SEED_Q=[
+ {id:"m1",s:"General Medicine",t:"Endocrine",q:"The most common cause of death in a patient with type 2 diabetes mellitus is:",o:["Diabetic ketoacidosis","Cardiovascular (coronary artery) disease","End-stage renal disease","Overwhelming infection"],a:1,e:"Macrovascular disease — chiefly coronary artery disease — is the leading cause of mortality in T2DM."},
+ {id:"m2",s:"General Medicine",t:"Nephrology",q:"Worldwide, the most common cause of chronic kidney disease is:",o:["Chronic glomerulonephritis","Hypertensive nephrosclerosis","Diabetic nephropathy","Polycystic kidney disease"],a:2,e:"Diabetic nephropathy is the single leading cause of CKD and ESRD globally."},
+ {id:"m3",s:"General Medicine",t:"Rheumatology",q:"Which autoantibody is the MOST specific for systemic lupus erythematosus?",o:["ANA","Anti-dsDNA","Anti-Sm (anti-Smith)","Anti-histone"],a:2,e:"Anti-Sm is highly specific (but low sensitivity). Anti-dsDNA is also specific and correlates with lupus nephritis/activity; ANA is sensitive but not specific."},
+ {id:"m4",s:"General Medicine",t:"Cardiology",q:"The earliest ECG change in hyperkalaemia is:",o:["Tall, peaked T waves","Prominent U waves","Prolonged QT interval","Delta waves"],a:0,e:"Tall tented T waves appear first, followed by widened QRS, loss of P waves and a sine-wave pattern."},
+ {id:"m5",s:"General Medicine",t:"Hepatology",q:"A Kayser–Fleischer ring seen on slit-lamp examination is diagnostic of:",o:["Haemochromatosis","Wilson disease","Primary biliary cholangitis","Alpha-1 antitrypsin deficiency"],a:1,e:"KF rings represent copper deposition in Descemet's membrane and are characteristic of Wilson disease."},
+ {id:"m6",s:"General Medicine",t:"Cardiology",q:"After failed vagal manoeuvres, the drug of choice to terminate a stable narrow-complex SVT is:",o:["IV amiodarone","IV adenosine","IV verapamil","IV digoxin"],a:1,e:"IV adenosine causes transient AV block and terminates most AV-nodal re-entrant tachycardias."},
+ {id:"m7",s:"General Medicine",t:"Infectious disease",q:"The most common bacterial cause of community-acquired pneumonia is:",o:["Klebsiella pneumoniae","Streptococcus pneumoniae","Mycoplasma pneumoniae","Staphylococcus aureus"],a:1,e:"Streptococcus pneumoniae (pneumococcus) remains the commonest identified cause of CAP."},
+ {id:"m8",s:"General Medicine",t:"Dermatology",q:"Iris / target lesions are the classic morphology of:",o:["Pemphigus vulgaris","Erythema multiforme","Lichen planus","Dermatitis herpetiformis"],a:1,e:"Target (iris) lesions with three concentric zones are pathognomonic of erythema multiforme."},
+
+ {id:"s1",s:"General Surgery",t:"Endocrine surgery",q:"The most common malignancy of the thyroid gland is:",o:["Follicular carcinoma","Papillary carcinoma","Medullary carcinoma","Anaplastic carcinoma"],a:1,e:"Papillary carcinoma accounts for ~80% of thyroid cancers and spreads mainly via lymphatics."},
+ {id:"s2",s:"General Surgery",t:"Hepatobiliary",q:"A palpable, non-tender gallbladder with painless jaundice (Courvoisier's law) suggests:",o:["Gallstone obstruction","Carcinoma of the head of pancreas","Acute cholecystitis","Mirizzi syndrome"],a:1,e:"Courvoisier's law: in painless obstructive jaundice a palpable gallbladder is unlikely to be due to stones — think periampullary / pancreatic head malignancy."},
+ {id:"s3",s:"General Surgery",t:"GI surgery",q:"The most common cause of small bowel obstruction in adults is:",o:["Obstructed hernia","Postoperative adhesions","Malignancy","Intussusception"],a:1,e:"Postoperative adhesions are the leading cause of SBO in the developed world; hernia is next."},
+ {id:"s4",s:"General Surgery",t:"Hepatobiliary",q:"Charcot's triad of ascending cholangitis consists of:",o:["Fever with chills, jaundice, RUQ pain","Pain, vomiting, distension","Jaundice, pruritus, pale stools","Fever, hypotension, confusion"],a:0,e:"Charcot's triad = fever/rigors + jaundice + RUQ pain. Adding hypotension and altered mental status gives Reynolds' pentad."},
+ {id:"s5",s:"General Surgery",t:"Pancreas",q:"Grey Turner's sign (flank bruising) is associated with:",o:["Ruptured appendix","Severe haemorrhagic pancreatitis","Perforated peptic ulcer","Sigmoid volvulus"],a:1,e:"Grey Turner's (flank) and Cullen's (periumbilical) signs reflect retroperitoneal haemorrhage in severe acute pancreatitis."},
+ {id:"s6",s:"General Surgery",t:"GI surgery",q:"The most common cause of large bowel obstruction in adults is:",o:["Diverticular stricture","Colorectal carcinoma","Sigmoid volvulus","Faecal impaction"],a:1,e:"Colorectal carcinoma is the commonest cause of mechanical large bowel obstruction."},
+ {id:"s7",s:"General Surgery",t:"Acute abdomen",q:"The imaging investigation of choice for suspected acute appendicitis in a pregnant woman is:",o:["Contrast CT abdomen","Ultrasonography","Plain X-ray abdomen","Diagnostic laparoscopy first"],a:1,e:"USG is first-line in pregnancy (no ionising radiation); MRI is used if ultrasound is inconclusive."},
+ {id:"s8",s:"General Surgery",t:"Vascular",q:"The classic triad of pheochromocytoma is:",o:["Headache, sweating, palpitations","Flushing, diarrhoea, wheeze","Weight gain, striae, hirsutism","Weakness, hypertension, alkalosis"],a:0,e:"Episodic headache, diaphoresis and palpitations with paroxysmal hypertension characterise catecholamine excess."},
+
+ {id:"o1",s:"Obstetrics & Gynaecology",t:"Obstetric emergency",q:"The most common cause of primary postpartum haemorrhage is:",o:["Retained placenta","Uterine atony","Genital tract trauma","Coagulopathy"],a:1,e:"Uterine atony accounts for ~70–80% of PPH — the '4 Ts': Tone, Tissue, Trauma, Thrombin."},
+ {id:"o2",s:"Obstetrics & Gynaecology",t:"Hypertensive disorders",q:"The drug of choice to control and prevent seizures in eclampsia is:",o:["Diazepam","Phenytoin","Magnesium sulfate","Labetalol"],a:2,e:"Magnesium sulfate (Pritchard / Zuspan regimen) is superior to phenytoin/diazepam for eclamptic seizure control and prophylaxis."},
+ {id:"o3",s:"Obstetrics & Gynaecology",t:"Early pregnancy",q:"The most common site of ectopic pregnancy is:",o:["Isthmus of the tube","Ampulla of the fallopian tube","Ovary","Cervix"],a:1,e:"The ampulla is the commonest site (~70%); the isthmus is more likely to rupture early."},
+ {id:"o4",s:"Obstetrics & Gynaecology",t:"Gynae oncology",q:"The most common gynaecological malignancy in India is:",o:["Carcinoma endometrium","Carcinoma cervix","Carcinoma ovary","Choriocarcinoma"],a:1,e:"Cervical cancer remains the leading gynaecological cancer in India (endometrial predominates in high-income countries)."},
+ {id:"o5",s:"Obstetrics & Gynaecology",t:"Early pregnancy",q:"The drug used for medical management of an unruptured ectopic pregnancy is:",o:["Mifepristone","Methotrexate","Misoprostol","Dinoprostone"],a:1,e:"Systemic methotrexate (a folate antagonist) is used for stable, unruptured ectopics meeting size/β-hCG criteria."},
+ {id:"o6",s:"Obstetrics & Gynaecology",t:"Labour",q:"The Bishop score is used to assess:",o:["Fetal wellbeing","Cervical favourability for induction of labour","Degree of cephalopelvic disproportion","Severity of pre-eclampsia"],a:1,e:"The Bishop score grades dilatation, effacement, station, consistency and position to predict success of induction."},
+ {id:"o7",s:"Obstetrics & Gynaecology",t:"Endocrine",q:"By the DIPSI criteria, gestational diabetes is diagnosed when the 2-hour plasma glucose after a 75 g oral load is ≥:",o:["120 mg/dL","140 mg/dL","153 mg/dL","200 mg/dL"],a:1,e:"DIPSI: a single 2-hour value ≥140 mg/dL after 75 g glucose (given irrespective of fasting state) diagnoses GDM."},
+ {id:"o8",s:"Obstetrics & Gynaecology",t:"Maternal health",q:"The leading direct cause of maternal mortality in India is:",o:["Hypertensive disorders","Obstetric haemorrhage","Sepsis","Obstructed labour"],a:1,e:"Haemorrhage (largely PPH) is the commonest direct cause of maternal death in India."},
+
+ {id:"p1",s:"Pediatrics",t:"Cardiology",q:"The most common congenital heart disease overall is:",o:["Atrial septal defect","Ventricular septal defect","Tetralogy of Fallot","Patent ductus arteriosus"],a:1,e:"VSD is the commonest CHD overall; tetralogy of Fallot is the commonest cyanotic CHD beyond infancy."},
+ {id:"p2",s:"Pediatrics",t:"Cardiology",q:"The most common cyanotic congenital heart disease is:",o:["Transposition of great arteries","Tetralogy of Fallot","Tricuspid atresia","Truncus arteriosus"],a:1,e:"Tetralogy of Fallot is the most common cyanotic CHD; TGA is the commonest cyanotic lesion presenting in the neonatal period."},
+ {id:"p3",s:"Pediatrics",t:"Neonatology",q:"Jaundice appearing within the first 24 hours of life is:",o:["Physiological","Always pathological","Breast-milk jaundice","Normal in preterms"],a:1,e:"Any jaundice in the first 24 hours is pathological — think haemolysis (Rh/ABO), sepsis or TORCH infection."},
+ {id:"p4",s:"Pediatrics",t:"Infectious disease",q:"Koplik spots are pathognomonic of:",o:["Rubella","Measles","Chickenpox","Scarlet fever"],a:1,e:"Small white spots on an erythematous buccal mucosa (Koplik spots) precede the rash of measles."},
+ {id:"p5",s:"Pediatrics",t:"Respiratory",q:"The most common cause of congenital stridor in an infant is:",o:["Vocal cord palsy","Laryngomalacia","Subglottic stenosis","Vascular ring"],a:1,e:"Laryngomalacia (collapse of supraglottic structures on inspiration) causes >60% of congenital stridor and usually resolves by 18–24 months."},
+ {id:"p6",s:"Pediatrics",t:"Haematology-oncology",q:"The most common malignancy of childhood is:",o:["Neuroblastoma","Acute lymphoblastic leukaemia","Wilms tumour","Retinoblastoma"],a:1,e:"Acute lymphoblastic leukaemia (ALL) is the commonest childhood cancer; CNS tumours are the most common solid tumours."},
+ {id:"p7",s:"Pediatrics",t:"Growth & development",q:"A child who can walk independently but cannot yet run has a developmental age of approximately:",o:["9 months","12–15 months","18–24 months","3 years"],a:1,e:"Independent walking is typically achieved by 12–15 months; running appears around 18 months."},
+ {id:"p8",s:"Pediatrics",t:"Gastroenterology",q:"Rice-water stools are characteristic of infection with:",o:["Shigella dysenteriae","Vibrio cholerae","Entamoeba histolytica","Rotavirus"],a:1,e:"Profuse painless watery 'rice-water' stools with rapid dehydration are typical of Vibrio cholerae."}
+];
+
+var SEED_C=[
+ {id:"cm1",s:"General Medicine",f:"Most specific antibody for SLE",b:"Anti-Sm (anti-Smith). Anti-dsDNA is also specific and tracks nephritis/activity."},
+ {id:"cm2",s:"General Medicine",f:"Beck's triad (cardiac tamponade)",b:"Hypotension + muffled heart sounds + raised JVP."},
+ {id:"cm3",s:"General Medicine",f:"Cushing's triad (raised intracranial pressure)",b:"Hypertension + bradycardia + irregular respiration."},
+ {id:"cm4",s:"General Medicine",f:"Antidote for warfarin over-anticoagulation",b:"Vitamin K; add FFP or prothrombin complex concentrate for major bleeding."},
+ {id:"cm5",s:"General Medicine",f:"Virchow's triad of thrombosis",b:"Endothelial injury + venous stasis + hypercoagulability."},
+ {id:"cm6",s:"General Medicine",f:"First-line drug for absence (petit mal) seizures",b:"Ethosuximide (valproate is an alternative)."},
+ {id:"cm7",s:"General Medicine",f:"Whipple's triad (insulinoma)",b:"Hypoglycaemic symptoms + low plasma glucose + relief after glucose."},
+ {id:"cm8",s:"General Medicine",f:"Most common cause of Addison's disease (developed world)",b:"Autoimmune adrenalitis (TB in developing countries)."},
+
+ {id:"cs1",s:"General Surgery",f:"Charcot's triad",b:"Fever with chills + jaundice + RUQ pain — ascending cholangitis."},
+ {id:"cs2",s:"General Surgery",f:"Reynolds' pentad",b:"Charcot's triad + hypotension + altered mental status."},
+ {id:"cs3",s:"General Surgery",f:"Cullen's sign",b:"Periumbilical bruising — haemorrhagic pancreatitis / ruptured ectopic."},
+ {id:"cs4",s:"General Surgery",f:"Grey Turner's sign",b:"Flank bruising — retroperitoneal haemorrhage in severe pancreatitis."},
+ {id:"cs5",s:"General Surgery",f:"Saint's triad",b:"Gallstones + hiatus hernia + diverticulosis."},
+ {id:"cs6",s:"General Surgery",f:"Most common thyroid cancer",b:"Papillary carcinoma (~80%); spreads via lymphatics."},
+ {id:"cs7",s:"General Surgery",f:"Trousseau's sign of malignancy",b:"Migratory superficial thrombophlebitis — classically pancreatic cancer."},
+ {id:"cs8",s:"General Surgery",f:"Most common cause of SBO in adults",b:"Postoperative adhesions."},
+
+ {id:"co1",s:"Obstetrics & Gynaecology",f:"Most common cause of postpartum haemorrhage",b:"Uterine atony (the 4 Ts: Tone, Tissue, Trauma, Thrombin)."},
+ {id:"co2",s:"Obstetrics & Gynaecology",f:"Drug of choice for eclamptic seizures",b:"Magnesium sulfate."},
+ {id:"co3",s:"Obstetrics & Gynaecology",f:"Most common site of ectopic pregnancy",b:"Ampulla of the fallopian tube (~70%)."},
+ {id:"co4",s:"Obstetrics & Gynaecology",f:"Naegele's rule for EDD",b:"LMP − 3 months + 7 days + 1 year (assumes a 28-day cycle)."},
+ {id:"co5",s:"Obstetrics & Gynaecology",f:"Bishop score assesses",b:"Cervical favourability for induction of labour."},
+ {id:"co6",s:"Obstetrics & Gynaecology",f:"Medical management of unruptured ectopic",b:"Methotrexate (folate antagonist)."},
+ {id:"co7",s:"Obstetrics & Gynaecology",f:"DIPSI diagnosis of GDM (2-h, 75 g)",b:"2-hour plasma glucose ≥140 mg/dL."},
+ {id:"co8",s:"Obstetrics & Gynaecology",f:"Most common gynae malignancy in India",b:"Carcinoma cervix."},
+
+ {id:"cp1",s:"Pediatrics",f:"Most common congenital heart disease overall",b:"Ventricular septal defect (VSD)."},
+ {id:"cp2",s:"Pediatrics",f:"Most common cyanotic CHD",b:"Tetralogy of Fallot (TGA is commonest in the neonatal period)."},
+ {id:"cp3",s:"Pediatrics",f:"Koplik spots",b:"Pathognomonic of measles."},
+ {id:"cp4",s:"Pediatrics",f:"Most common childhood malignancy",b:"Acute lymphoblastic leukaemia (ALL)."},
+ {id:"cp5",s:"Pediatrics",f:"Most common cause of congenital stridor",b:"Laryngomalacia."},
+ {id:"cp6",s:"Pediatrics",f:"Jaundice within first 24 hours of life",b:"Always pathological (haemolysis / sepsis / TORCH)."},
+ {id:"cp7",s:"Pediatrics",f:"Social smile appears at",b:"6–8 weeks (about 2 months)."},
+ {id:"cp8",s:"Pediatrics",f:"APGAR score components",b:"Appearance, Pulse, Grimace, Activity, Respiration."}
+];
+
+var SYLLABUS={
+ "General Medicine":["Cardiology","Respiratory","Nephrology","Endocrinology","Gastroenterology & Hepatology","Neurology","Rheumatology","Haematology","Infectious disease","Emergency & toxicology"],
+ "General Surgery":["GI & colorectal","Hepatobiliary & pancreas","Endocrine surgery","Breast","Trauma & critical care","Vascular","Urology","Surgical oncology","Hernia & abdominal wall","Paediatric surgery"],
+ "Obstetrics & Gynaecology":["Antenatal care","Labour & delivery","Obstetric emergencies","Contraception","Infertility & ART","Gynae oncology","Menstrual disorders","Urogynaecology","Reproductive endocrinology","Operative obstetrics"],
+ "Pediatrics":["Neonatology","Growth & development","Nutrition","Immunisation","Paediatric cardiology","Infectious diseases","Respiratory","Haematology-oncology","Neurology","Genetics & metabolic"]
+};
+
+/* merged content (seed + user additions) */
+var SEED_Q_EXT=[
+{"id":"m9","s":"General Medicine","t":"Cardiology","q":"The most common cause of mitral stenosis in adults is:","o":["Infective endocarditis","Rheumatic heart disease","Congenital malformation","Degenerative calcification"],"a":1,"e":"Chronic rheumatic valvulitis with commissural fusion is by far the commonest cause of mitral stenosis."},
+{"id":"m10","s":"General Medicine","t":"Cardiology","q":"A continuous 'machinery' murmur best heard in the left infraclavicular area is characteristic of:","o":["Ventricular septal defect","Atrial septal defect","Patent ductus arteriosus","Coarctation of the aorta"],"a":2,"e":"Continuous flow across the ductus throughout systole and diastole produces the classic machinery murmur of PDA."},
+{"id":"m11","s":"General Medicine","t":"Respiratory","q":"Worldwide, the most common cause of haemoptysis is:","o":["Bronchogenic carcinoma","Pulmonary tuberculosis","Bronchiectasis","Pulmonary embolism"],"a":1,"e":"Pulmonary tuberculosis remains the single most common global cause of haemoptysis."},
+{"id":"m12","s":"General Medicine","t":"Respiratory","q":"The investigation of choice to confirm pulmonary thromboembolism in a haemodynamically stable patient is:","o":["D-dimer assay","Chest radiograph","CT pulmonary angiography","Ventilation-perfusion scan"],"a":2,"e":"CT pulmonary angiography is the gold-standard confirmatory test, directly visualising the thrombus."},
+{"id":"m13","s":"General Medicine","t":"Nephrology","q":"The most common cause of nephrotic syndrome in children is:","o":["Focal segmental glomerulosclerosis","Membranous nephropathy","Minimal change disease","Membranoproliferative glomerulonephritis"],"a":2,"e":"Minimal change disease accounts for the vast majority of childhood nephrotic syndrome and is highly steroid-responsive."},
+{"id":"m14","s":"General Medicine","t":"Nephrology","q":"The target antigen in primary (idiopathic) membranous nephropathy is:","o":["Type IV collagen","Phospholipase A2 receptor (PLA2R)","Nephrin","Podocin"],"a":1,"e":"Anti-PLA2R antibodies against the podocyte phospholipase A2 receptor cause most cases of primary membranous nephropathy."},
+{"id":"m15","s":"General Medicine","t":"Endocrinology","q":"The most common cause of endogenous Cushing syndrome is:","o":["Adrenal adenoma","Ectopic ACTH secretion","Pituitary ACTH-secreting adenoma","Adrenal carcinoma"],"a":2,"e":"An ACTH-secreting pituitary adenoma (Cushing disease) is the commonest endogenous cause."},
+{"id":"m16","s":"General Medicine","t":"Endocrinology","q":"The most common cause of primary hyperaldosteronism is:","o":["Aldosterone-producing adenoma","Bilateral idiopathic adrenal hyperplasia","Adrenal carcinoma","Glucocorticoid-remediable aldosteronism"],"a":1,"e":"Bilateral idiopathic adrenal hyperplasia is now recognised as the most frequent cause of primary aldosteronism."},
+{"id":"m17","s":"General Medicine","t":"Gastroenterology/Hepatology","q":"Charcot's triad of acute cholangitis comprises fever with chills, jaundice, and:","o":["Hypotension","Altered mental status","Right upper quadrant pain","Pruritus"],"a":2,"e":"Charcot's triad is fever, jaundice and right upper quadrant pain; adding hypotension and confusion gives Reynolds' pentad."},
+{"id":"m18","s":"General Medicine","t":"Gastroenterology/Hepatology","q":"The serum tumour marker classically used in the diagnosis and surveillance of hepatocellular carcinoma is:","o":["CA 19-9","Alpha-fetoprotein","Carcinoembryonic antigen","CA-125"],"a":1,"e":"Alpha-fetoprotein is the classic serum marker for hepatocellular carcinoma."},
+{"id":"m19","s":"General Medicine","t":"Neurology","q":"The most common cause of spontaneous (non-traumatic) subarachnoid haemorrhage is:","o":["Arteriovenous malformation","Hypertensive haemorrhage","Ruptured saccular (berry) aneurysm","Cerebral amyloid angiopathy"],"a":2,"e":"Rupture of a saccular (berry) aneurysm accounts for the majority of spontaneous subarachnoid haemorrhages."},
+{"id":"m20","s":"General Medicine","t":"Neurology","q":"The initial investigation of choice for suspected acute subarachnoid haemorrhage is:","o":["MRI brain","Non-contrast CT of the head","Lumbar puncture","Digital subtraction angiography"],"a":1,"e":"Non-contrast CT is the first-line test, highly sensitive for acute subarachnoid blood."},
+{"id":"m21","s":"General Medicine","t":"Rheumatology","q":"The most specific antibody for rheumatoid arthritis is:","o":["Rheumatoid factor","Antinuclear antibody","Anti-cyclic citrullinated peptide (anti-CCP)","Anti-dsDNA"],"a":2,"e":"Anti-CCP antibodies are highly specific for rheumatoid arthritis and predict erosive disease."},
+{"id":"m22","s":"General Medicine","t":"Rheumatology","q":"The HLA allele most strongly associated with ankylosing spondylitis is:","o":["HLA-DR4","HLA-B27","HLA-B51","HLA-DQ2"],"a":1,"e":"HLA-B27 shows the strongest association with ankylosing spondylitis and the seronegative spondyloarthropathies."},
+{"id":"m23","s":"General Medicine","t":"Haematology","q":"The most common inherited bleeding disorder is:","o":["Haemophilia A","von Willebrand disease","Haemophilia B","Factor XI deficiency"],"a":1,"e":"von Willebrand disease is the most prevalent inherited bleeding disorder, typically autosomal dominant."},
+{"id":"m24","s":"General Medicine","t":"Haematology","q":"Auer rods on a bone marrow or peripheral smear are pathognomonic of:","o":["Chronic myeloid leukaemia","Acute lymphoblastic leukaemia","Acute myeloid leukaemia","Chronic lymphocytic leukaemia"],"a":2,"e":"Auer rods are crystalline azurophilic granule aggregates diagnostic of acute myeloid leukaemia."},
+{"id":"m25","s":"General Medicine","t":"Infectious disease","q":"The drug of choice for scrub typhus is:","o":["Ceftriaxone","Doxycycline","Azithromycin","Ciprofloxacin"],"a":1,"e":"Doxycycline is the first-line agent for scrub typhus and other rickettsial infections."},
+{"id":"m26","s":"General Medicine","t":"Emergency/Toxicology","q":"The physiological antidote of choice in organophosphate poisoning is:","o":["Pralidoxime","Naloxone","Atropine","Flumazenil"],"a":2,"e":"Atropine antagonises muscarinic overstimulation and is the primary physiological antidote in organophosphate poisoning."},
+{"id":"s9","s":"General Surgery","t":"GI/colorectal","q":"The most common anatomical site of a carcinoid (well-differentiated neuroendocrine) tumour of the gastrointestinal tract is:","o":["Ileum","Appendix","Rectum","Stomach"],"a":1,"e":"The appendix is the classic most common site of GI carcinoid tumours, usually found incidentally at appendicectomy."},
+{"id":"s10","s":"General Surgery","t":"Hepatobiliary & pancreas","q":"The non-invasive investigation of choice for demonstrating common bile duct stones is:","o":["ERCP","MRCP","Plain X-ray abdomen","Oral cholecystography"],"a":1,"e":"MRCP is the non-invasive diagnostic modality of choice for choledocholithiasis; ERCP is reserved for therapeutic intervention."},
+{"id":"s11","s":"General Surgery","t":"Hepatobiliary & pancreas","q":"The most common cause of chronic pancreatitis in adults is:","o":["Gallstones","Hypercalcaemia","Chronic alcohol consumption","Hypertriglyceridaemia"],"a":2,"e":"Chronic alcohol use accounts for the majority of chronic pancreatitis cases, unlike acute pancreatitis where gallstones predominate."},
+{"id":"s12","s":"General Surgery","t":"Endocrine surgery","q":"The most common cause of primary hyperparathyroidism is:","o":["Parathyroid hyperplasia","Solitary parathyroid adenoma","Parathyroid carcinoma","Multiple adenomas"],"a":1,"e":"A single (solitary) parathyroid adenoma is responsible for about 80-85% of primary hyperparathyroidism."},
+{"id":"s13","s":"General Surgery","t":"Breast","q":"The most common histological type of invasive breast cancer is:","o":["Invasive lobular carcinoma","Medullary carcinoma","Invasive ductal carcinoma (NST)","Mucinous carcinoma"],"a":2,"e":"Invasive ductal carcinoma of no special type accounts for roughly 70-80% of all invasive breast cancers."},
+{"id":"s14","s":"General Surgery","t":"Trauma/critical care","q":"Beck's triad of cardiac tamponade comprises hypotension, muffled heart sounds and:","o":["Pulsus paradoxus","Bradycardia","Cyanosis","Raised jugular venous pressure"],"a":3,"e":"Beck's triad is hypotension, muffled heart sounds and distended neck veins (raised JVP); pulsus paradoxus is a separate associated sign."},
+{"id":"s15","s":"General Surgery","t":"Vascular","q":"The most common location of an abdominal aortic aneurysm is:","o":["Suprarenal aorta","Infrarenal abdominal aorta","Thoracic aorta","Aortic arch"],"a":1,"e":"The great majority of abdominal aortic aneurysms arise in the infrarenal segment, below the renal arteries."},
+{"id":"s16","s":"General Surgery","t":"Urology","q":"The most common composition of urinary tract calculi is:","o":["Struvite","Uric acid","Calcium oxalate","Cystine"],"a":2,"e":"Calcium oxalate stones are the most common type of renal calculi overall."},
+{"id":"s17","s":"General Surgery","t":"Surgical oncology","q":"The serum tumour marker most useful in the diagnosis and monitoring of hepatocellular carcinoma is:","o":["CEA","Alpha-fetoprotein","CA 19-9","CA 125"],"a":1,"e":"Alpha-fetoprotein (AFP) is the classic tumour marker for hepatocellular carcinoma."},
+{"id":"s18","s":"General Surgery","t":"Hernia","q":"Which type of external abdominal hernia has the highest risk of strangulation?","o":["Direct inguinal hernia","Indirect inguinal hernia","Femoral hernia","Incisional hernia"],"a":2,"e":"The narrow, rigid femoral canal makes femoral hernia the abdominal hernia most prone to strangulation."},
+{"id":"s19","s":"General Surgery","t":"Paediatric surgery","q":"The 'double bubble' sign on a neonatal plain abdominal radiograph is characteristic of:","o":["Hypertrophic pyloric stenosis","Duodenal atresia","Hirschsprung disease","Meconium ileus"],"a":1,"e":"The double bubble (dilated stomach and proximal duodenum) is the classic radiographic sign of duodenal atresia."},
+{"id":"s20","s":"General Surgery","t":"GI/colorectal","q":"A Sister Mary Joseph nodule at the umbilicus indicates:","o":["Umbilical hernia","Metastatic intra-abdominal malignancy","Omphalitis","Urachal remnant"],"a":1,"e":"A Sister Mary Joseph nodule is a palpable periumbilical metastasis, most often from a gastrointestinal or gynaecological malignancy."},
+{"id":"s21","s":"General Surgery","t":"Hepatobiliary & pancreas","q":"The most common benign tumour of the liver is:","o":["Hepatic adenoma","Cavernous haemangioma","Focal nodular hyperplasia","Bile duct hamartoma"],"a":1,"e":"Cavernous haemangioma is the most common benign hepatic tumour, usually asymptomatic and found incidentally."},
+{"id":"s22","s":"General Surgery","t":"Endocrine surgery","q":"Which thyroid carcinoma characteristically metastasises by the haematogenous route to bone and lung?","o":["Papillary carcinoma","Follicular carcinoma","Medullary carcinoma","Anaplastic carcinoma"],"a":1,"e":"Follicular thyroid carcinoma spreads predominantly haematogenously to bone and lung, unlike the lymphatic spread of papillary carcinoma."},
+{"id":"s23","s":"General Surgery","t":"Breast","q":"The most common cause of a discrete benign breast lump in a woman under 30 years is:","o":["Fibrocystic change","Fibroadenoma","Phyllodes tumour","Breast abscess"],"a":1,"e":"Fibroadenoma is the commonest benign breast tumour in young women, presenting as a mobile, firm, painless 'breast mouse'."},
+{"id":"s24","s":"General Surgery","t":"Vascular","q":"Thromboangiitis obliterans (Buerger's disease) is most strongly associated with:","o":["Diabetes mellitus","Tobacco smoking","Hyperlipidaemia","Hypertension"],"a":1,"e":"Buerger's disease has a near-absolute association with tobacco use, and cessation is the cornerstone of treatment."},
+{"id":"s25","s":"General Surgery","t":"Urology","q":"The most common histological type of urinary bladder carcinoma is:","o":["Squamous cell carcinoma","Urothelial (transitional cell) carcinoma","Adenocarcinoma","Small cell carcinoma"],"a":1,"e":"Urothelial (transitional cell) carcinoma accounts for the vast majority of bladder cancers."},
+{"id":"s26","s":"General Surgery","t":"Surgical oncology","q":"An enlarged left supraclavicular lymph node (Virchow's node) is classically associated with carcinoma of the:","o":["Breast","Stomach","Lung","Thyroid"],"a":1,"e":"Virchow's node (Troisier's sign) is a left supraclavicular metastasis classically arising from gastric carcinoma."},
+{"id":"o9","s":"Obstetrics & Gynaecology","t":"Antenatal care","q":"Which is the investigation of choice for the most accurate estimation of gestational age?","o":["Biparietal diameter in the second trimester","Crown-rump length in the first trimester","Femur length in the third trimester","Abdominal circumference at term"],"a":1,"e":"First-trimester crown-rump length (7-13 weeks) is the single most accurate parameter for dating a pregnancy."},
+{"id":"o10","s":"Obstetrics & Gynaecology","t":"Antenatal care","q":"The recommended daily periconceptional folic acid dose for a low-risk woman to prevent neural tube defects is:","o":["100 micrograms/day","400 micrograms/day","4 milligrams/day","10 milligrams/day"],"a":1,"e":"Low-risk women need 400 micrograms/day; the 4-5 mg dose is reserved for high-risk women (prior NTD, on antiepileptics)."},
+{"id":"o11","s":"Obstetrics & Gynaecology","t":"Labour & delivery","q":"The most common fetal position of the vertex at the onset of labour is:","o":["Right occipito-posterior","Left occipito-anterior","Right occipito-anterior","Left occipito-posterior"],"a":1,"e":"Left occipito-anterior (LOA) is the commonest position because the fetal spine tends to lie on the maternal left with the occiput anterior."},
+{"id":"o12","s":"Obstetrics & Gynaecology","t":"Labour & delivery","q":"The accepted minimum normal rate of cervical dilatation in the active phase of the first stage of labour is:","o":["0.5 cm/hour","1 cm/hour","2 cm/hour","3 cm/hour"],"a":1,"e":"A dilatation rate of at least 1 cm/hour in the active phase is the classic Friedman/partograph benchmark for normal progress."},
+{"id":"o13","s":"Obstetrics & Gynaecology","t":"Obstetric emergencies","q":"The first-line manoeuvre in the management of shoulder dystocia is:","o":["Zavanelli manoeuvre","McRoberts manoeuvre","Wood's corkscrew manoeuvre","Rubin manoeuvre"],"a":1,"e":"McRoberts manoeuvre (hyperflexion of maternal hips) with suprapubic pressure is the first step and resolves most shoulder dystocias."},
+{"id":"o14","s":"Obstetrics & Gynaecology","t":"Obstetric emergencies","q":"The definitive management of umbilical cord prolapse with a live, viable fetus is:","o":["Intravenous oxytocin infusion","Immediate cesarean section","Vacuum extraction","Expectant management"],"a":1,"e":"Immediate cesarean is definitive; while preparing, the presenting part is elevated and the mother placed knee-chest to relieve cord compression."},
+{"id":"o15","s":"Obstetrics & Gynaecology","t":"Contraception","q":"The primary mechanism of action of the levonorgestrel emergency contraceptive pill is:","o":["Inhibition of implantation","Inhibition or delay of ovulation","Thickening of cervical mucus","Induction of tubal spasm"],"a":1,"e":"Levonorgestrel emergency contraception works chiefly by inhibiting or delaying the LH surge and thus ovulation."},
+{"id":"o16","s":"Obstetrics & Gynaecology","t":"Contraception","q":"With exclusive breastfeeding and amenorrhoea, the lactational amenorrhoea method provides reliable contraception up to:","o":["3 months postpartum","6 months postpartum","9 months postpartum","12 months postpartum"],"a":1,"e":"LAM is reliable only when all three criteria hold: exclusive breastfeeding, amenorrhoea, and within 6 months postpartum."},
+{"id":"o17","s":"Obstetrics & Gynaecology","t":"Infertility/ART","q":"The most common cause of anovulatory infertility is:","o":["Premature ovarian insufficiency","Polycystic ovary syndrome","Hyperprolactinaemia","Hypothalamic amenorrhoea"],"a":1,"e":"PCOS accounts for the majority of anovulatory (WHO Group II) infertility."},
+{"id":"o18","s":"Obstetrics & Gynaecology","t":"Infertility/ART","q":"The gold standard investigation for assessment of tubal patency is:","o":["Hysterosalpingography","Laparoscopy with chromopertubation","Sonosalpingography","Hysteroscopy"],"a":1,"e":"Laparoscopy with chromopertubation (dye test) is the gold standard as it directly visualises tubal spill and pelvic pathology."},
+{"id":"o19","s":"Obstetrics & Gynaecology","t":"Gynae oncology","q":"The tumour marker most useful for monitoring epithelial ovarian carcinoma is:","o":["Carcinoembryonic antigen","CA-125","Alpha-fetoprotein","Beta-hCG"],"a":1,"e":"CA-125 is the marker of choice for epithelial ovarian cancer, particularly serous type, for monitoring response and recurrence."},
+{"id":"o20","s":"Obstetrics & Gynaecology","t":"Gynae oncology","q":"The HPV genotype most commonly associated with cervical carcinoma is:","o":["HPV 6","HPV 11","HPV 16","HPV 31"],"a":2,"e":"HPV 16 is the single most common oncogenic type in cervical cancer, followed by HPV 18."},
+{"id":"o21","s":"Obstetrics & Gynaecology","t":"Menstrual disorders","q":"The drug of choice for primary dysmenorrhoea is:","o":["Combined oral contraceptives","NSAIDs","Paracetamol","Antispasmodics"],"a":1,"e":"NSAIDs are first-line as they inhibit prostaglandin synthesis, the direct cause of dysmenorrhoeic uterine contractions."},
+{"id":"o22","s":"Obstetrics & Gynaecology","t":"Menstrual disorders","q":"The most common cause of postmenopausal bleeding is:","o":["Endometrial carcinoma","Atrophic endometritis/vaginitis","Cervical carcinoma","Uterine leiomyoma"],"a":1,"e":"Atrophic endometritis/vaginitis is the commonest cause, but endometrial carcinoma must always be excluded first."},
+{"id":"o23","s":"Obstetrics & Gynaecology","t":"Urogynaecology","q":"The most common type of urinary incontinence in women is:","o":["Urge incontinence","Stress incontinence","Overflow incontinence","Functional incontinence"],"a":1,"e":"Stress urinary incontinence, due to urethral hypermobility/sphincter weakness, is the commonest type in women."},
+{"id":"o24","s":"Obstetrics & Gynaecology","t":"Reproductive endocrinology","q":"Which hormone is measured in the mid-luteal phase to confirm that ovulation has occurred?","o":["Serum LH","Serum FSH","Serum progesterone","Serum estradiol"],"a":2,"e":"A raised mid-luteal (day 21) serum progesterone confirms ovulation, reflecting corpus luteum function."},
+{"id":"o25","s":"Obstetrics & Gynaecology","t":"Reproductive endocrinology","q":"The earliest clinical manifestation of Sheehan syndrome is usually:","o":["Secondary amenorrhoea","Failure of lactation","Loss of axillary and pubic hair","Cold intolerance"],"a":1,"e":"Failure to lactate postpartum is typically the first sign, as prolactin-secreting cells are among the earliest affected in pituitary necrosis."},
+{"id":"o26","s":"Obstetrics & Gynaecology","t":"Operative obstetrics","q":"An absolute prerequisite before application of obstetric forceps is:","o":["Intact membranes","Fully dilated cervix","Floating fetal head","Presence of epidural analgesia"],"a":1,"e":"The cervix must be fully dilated (with ruptured membranes and an engaged head) before forceps can be applied."},
+{"id":"p9","s":"Pediatrics","t":"Neonatology","q":"In a preterm neonate, intraventricular haemorrhage most commonly originates from which anatomical site?","o":["Choroid plexus","Subependymal germinal matrix","Thalamostriate vessels","Cerebellar vermis"],"a":1,"e":"The fragile, highly vascular subependymal germinal matrix is the classic origin of IVH in preterm infants."},
+{"id":"p10","s":"Pediatrics","t":"Neonatology","q":"The principal phospholipid in pulmonary surfactant responsible for lowering alveolar surface tension is:","o":["Sphingomyelin","Phosphatidylinositol","Dipalmitoylphosphatidylcholine","Phosphatidylserine"],"a":2,"e":"Dipalmitoylphosphatidylcholine (lecithin) is the chief surface-tension-reducing component of surfactant."},
+{"id":"p11","s":"Pediatrics","t":"Growth & development","q":"By what age does the anterior fontanelle normally close?","o":["6 months","12 months","18 months","30 months"],"a":2,"e":"The anterior fontanelle closes between 9 and 18 months, with 18 months taken as the upper limit of normal."},
+{"id":"p12","s":"Pediatrics","t":"Growth & development","q":"At what age does the social smile (smile in response to a face) normally appear?","o":["At birth","2 months","4 months","6 months"],"a":1,"e":"The social smile is a classic milestone appearing by about 6-8 weeks (2 months) of age."},
+{"id":"p13","s":"Pediatrics","t":"Nutrition","q":"Bitot spots on the bulbar conjunctiva are pathognomonic of deficiency of which vitamin?","o":["Vitamin A","Vitamin B2","Vitamin C","Vitamin D"],"a":0,"e":"Bitot spots (foamy keratinised conjunctival patches) are a classic sign of vitamin A deficiency."},
+{"id":"p14","s":"Pediatrics","t":"Nutrition","q":"Which form of protein-energy malnutrition is characterised by bilateral pedal oedema and hypoalbuminaemia?","o":["Marasmus","Kwashiorkor","Nutritional dwarfism","Underweight"],"a":1,"e":"Kwashiorkor is defined by oedema due to hypoalbuminaemia from severe protein deficiency."},
+{"id":"p15","s":"Pediatrics","t":"Immunisation","q":"What is the correct route of administration of the BCG vaccine?","o":["Subcutaneous","Intramuscular","Intradermal","Oral"],"a":2,"e":"BCG is given intradermally, classically over the left deltoid region."},
+{"id":"p16","s":"Pediatrics","t":"Immunisation","q":"Under India's National Immunization Schedule, the first dose of measles-containing (MR) vaccine is given at:","o":["6 weeks","9 completed months","15 months","5 years"],"a":1,"e":"The first MR/measles dose is scheduled at 9 completed months in the Indian immunisation schedule."},
+{"id":"p17","s":"Pediatrics","t":"Paediatric cardiology","q":"Which is the most common cyanotic congenital heart disease to present with cyanosis within the first 24 hours of life?","o":["Tetralogy of Fallot","Transposition of the great arteries","Tricuspid atresia","Ebstein anomaly"],"a":1,"e":"TGA is the commonest cyanotic CHD manifesting in the immediate newborn period; TOF usually presents later."},
+{"id":"p18","s":"Pediatrics","t":"Paediatric cardiology","q":"A continuous 'machinery' murmur best heard in the left infraclavicular area is characteristic of:","o":["Ventricular septal defect","Atrial septal defect","Patent ductus arteriosus","Pulmonary stenosis"],"a":2,"e":"The continuous machinery murmur is the classic auscultatory sign of a patent ductus arteriosus."},
+{"id":"p19","s":"Pediatrics","t":"Infectious diseases","q":"Rose spots (blanching erythematous macules on the trunk) are a classic clinical sign of:","o":["Measles","Enteric (typhoid) fever","Chickenpox","Scarlet fever"],"a":1,"e":"Rose spots on the abdomen/trunk in the second week are characteristic of enteric fever."},
+{"id":"p20","s":"Pediatrics","t":"Infectious diseases","q":"A grey adherent pseudomembrane over the tonsils with bilateral cervical swelling ('bull neck') is characteristic of:","o":["Diphtheria","Infectious mononucleosis","Streptococcal pharyngitis","Ludwig angina"],"a":0,"e":"An adherent bleeding-on-removal pseudomembrane with bull neck is pathognomonic of diphtheria."},
+{"id":"p21","s":"Pediatrics","t":"Respiratory","q":"The 'steeple sign' (subglottic narrowing) on a frontal neck radiograph is characteristic of:","o":["Acute epiglottitis","Croup (laryngotracheobronchitis)","Bronchiolitis","Retropharyngeal abscess"],"a":1,"e":"The steeple/pencil-tip sign from subglottic narrowing is classic for viral croup."},
+{"id":"p22","s":"Pediatrics","t":"Respiratory","q":"The most common causative organism of acute bronchiolitis in infants is:","o":["Respiratory syncytial virus","Parainfluenza virus","Adenovirus","Mycoplasma pneumoniae"],"a":0,"e":"RSV is the leading cause of bronchiolitis in children under 2 years."},
+{"id":"p23","s":"Pediatrics","t":"Haematology-oncology","q":"The most common cause of microcytic hypochromic anaemia in children is:","o":["Iron deficiency","Beta-thalassaemia trait","Lead poisoning","Sideroblastic anaemia"],"a":0,"e":"Iron deficiency is by far the commonest cause of microcytic hypochromic anaemia in childhood."},
+{"id":"p24","s":"Pediatrics","t":"Haematology-oncology","q":"The most common primary renal malignancy in children is:","o":["Wilms tumour (nephroblastoma)","Renal cell carcinoma","Neuroblastoma","Angiomyolipoma"],"a":0,"e":"Wilms tumour (nephroblastoma) is the commonest renal malignancy of childhood, typically age 2-5 years."},
+{"id":"p25","s":"Pediatrics","t":"Neurology","q":"Ascending symmetric flaccid paralysis with albuminocytologic dissociation in the CSF is characteristic of:","o":["Guillain-Barré syndrome","Poliomyelitis","Transverse myelitis","Myasthenia gravis"],"a":0,"e":"Albuminocytologic dissociation (raised CSF protein with normal cell count) with ascending paralysis is classic for GBS."},
+{"id":"p26","s":"Pediatrics","t":"Genetics/metabolic","q":"Phenylketonuria results from deficiency of which enzyme?","o":["Homogentisate oxidase","Phenylalanine hydroxylase","Tyrosinase","Branched-chain ketoacid dehydrogenase"],"a":1,"e":"Classic PKU is due to deficiency of phenylalanine hydroxylase, causing phenylalanine accumulation."}
+];
+function allQ(){return SEED_Q.concat(SEED_Q_EXT).concat(S.customQ);}
+function allC(){return SEED_C.concat(S.customC);}
+
+/* ---------- SRS (SM-2) ---------- */
+function srsOf(id){return S.srs[id]||{ease:2.5,interval:0,reps:0,due:today()};}
+function dueCards(){var t=today();return allC().filter(function(c){var r=srsOf(c.id);return r.due<=t;});}
+function gradeCard(id,q){ // q: 1 again,3 hard,4 good,5 easy
+  var r=srsOf(id);
+  if(q<3){r.reps=0;r.interval=0;r.due=today();}
+  else{
+    if(r.reps===0)r.interval=1;
+    else if(r.reps===1)r.interval=6;
+    else r.interval=Math.round(r.interval*r.ease);
+    if(q===5)r.interval=Math.round(r.interval*1.15)||1;
+    r.reps+=1;r.due=addDays(today(),r.interval);
+  }
+  r.ease=Math.max(1.3,r.ease+(0.1-(5-q)*(0.08+(5-q)*0.02)));
+  S.srs[id]=r;markActive();save();
+}
+function cardBucket(id){var r=S.srs[id];if(!r||r.reps===0)return "new";if(r.interval>=21)return "mastered";return "learning";}
+
+/* ---------- flash toast ---------- */
+var flashT;
+function toast(m){var f=document.getElementById("flash");f.textContent=m;f.classList.add("show");clearTimeout(flashT);flashT=setTimeout(function(){f.classList.remove("show");},1600);}
+
+/* ---------- misc helpers ---------- */
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function pct(a,b){return b>0?Math.round(a/b*100):0;}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function accColor(p){return p>=75?"good":p>=50?"warn":"bad";}
+/* =========================================================
+   THE SYSTEM — Solo Leveling game engine
+   ========================================================= */
+var RANKS=[
+  {max:5,key:"E",label:"E-Rank",cls:"Awakened"},
+  {max:10,key:"D",label:"D-Rank",cls:"Hunter"},
+  {max:15,key:"C",label:"C-Rank",cls:"Elite Hunter"},
+  {max:20,key:"B",label:"B-Rank",cls:"Ace Hunter"},
+  {max:25,key:"A",label:"A-Rank",cls:"Commander"},
+  {max:40,key:"S",label:"S-Rank",cls:"Monarch's Vessel"},
+  {max:Infinity,key:"N",label:"National",cls:"Shadow Monarch"}
+];
+var DAILY={q:20,cards:10,gates:1};
+var SHADOW_MILES=[0,1,3,5,8,12,20,35];
+var SHADOW_NAMES=["—","Igris","Iron","Tank","Tusk","Kaisel","Beru","Bellion"];
+var TITLE_DEFS=[
+  {id:"awaken",label:"The Awakened",test:function(){return S.game.awakened;}},
+  {id:"diligent",label:"Diligent",test:function(){return S.game.daily.claimed;}},
+  {id:"drank",label:"Gate-Crasher",test:function(){return S.game.gatesCleared>=1;}},
+  {id:"raider",label:"Gate Raider",test:function(){return S.game.gatesCleared>=10;}},
+  {id:"srank",label:"S-Rank Hunter",test:function(){return (S.history||[]).some(function(r){return pct(r.correct,r.total)>=90;});}},
+  {id:"arise",label:"Necromancer",test:function(){return S.game.shadowCount>=1;}},
+  {id:"commander",label:"Shadow Commander",test:function(){return S.game.shadowCount>=10;}},
+  {id:"unbroken",label:"Unbroken",test:function(){return streak()>=7;}},
+  {id:"monarch",label:"Shadow Monarch",test:function(){return S.game.level>=40;}}
+];
+
+function xpNeeded(level){return 80+level*30;}
+function rankOf(level){
+  for(var i=0;i<RANKS.length;i++){if(level<RANKS[i].max)return RANKS[i];}
+  return RANKS[RANKS.length-1];
+}
+function gateRank(p){
+  if(p>=90)return "S"; if(p>=80)return "A"; if(p>=70)return "B";
+  if(p>=60)return "C"; if(p>=45)return "D"; return "E";
+}
+function rankCls(k){return "r-"+(k==="N"?"N":k);}
+
+function dailyReset(){
+  var g=S.game,t=today();
+  if(g.daily.date!==t){g.daily={date:t,q:0,cards:0,gates:0,claimed:false};}
+}
+function dailyDone(){var d=S.game.daily;return d.q>=DAILY.q&&d.cards>=DAILY.cards&&d.gates>=DAILY.gates;}
+
+function awardXP(n,reason){
+  if(n<=0)return;
+  var g=S.game; g.xp+=n; var ups=[];var guard=0;
+  while(g.xp>=xpNeeded(g.level)&&guard++<1000){g.xp-=xpNeeded(g.level);g.level++;g.ap+=3;ups.push(g.level);}
+  save();
+  if(ups.length){levelBurst(ups[ups.length-1]);ping("level");
+    notif("LEVEL UP","You have risen to Lv. "+ups[ups.length-1],
+      ["Hunter rank: "+rankOf(g.level).label,
+       "+3 ability points to allocate",
+       reason?("Source: "+reason):"Keep clearing gates, Player."],4200);
+  }
+}
+
+function hasTitle(id){return S.game.titles.indexOf(id)>=0;}
+function grantTitle(id,label){if(!hasTitle(id)){S.game.titles.push(id);S.game.title=label;return true;}return false;}
+function checkTitles(){
+  var fresh=[];
+  TITLE_DEFS.forEach(function(td){if(td.test()&&grantTitle(td.id,td.label))fresh.push(td.label);});
+  if(fresh.length){save();ping("title");
+    notif("TITLE ACQUIRED",'New title: "'+fresh[fresh.length-1]+'"',
+      fresh.map(function(f){return "· "+f;}),4600);}
+  return fresh;
+}
+
+function shadowNameFor(count){
+  var name="Shadow Soldier";
+  for(var i=SHADOW_MILES.length-1;i>=0;i--){if(count>=SHADOW_MILES[i]&&SHADOW_MILES[i]>0){name=SHADOW_NAMES[i];break;}}
+  return name;
+}
+function arise(cardId){
+  var g=S.game;
+  if(g.shadowIds.indexOf(cardId)>=0)return null;
+  var prev=g.shadowCount;
+  g.shadowIds.push(cardId);g.shadowCount=g.shadowIds.length;save();
+  var prevMile=shadowNameFor(prev),nowMile=shadowNameFor(g.shadowCount);
+  ping("arise");
+  if(nowMile!==prevMile&&nowMile!=="Shadow Soldier"){
+    notif("ARISE",nowMile+" has answered your call",
+      ["Shadow Army strength: "+g.shadowCount,
+       "Mastered knowledge bends to your will, Monarch."],4800);
+  }else{
+    notif("ARISE","A new shadow rises",
+      ["Shadow Army strength: "+g.shadowCount,
+       "ARISE. — Another mastered card joins your ranks."],3600);
+  }
+  return nowMile;
+}
+
+/* ---------- sound (WebAudio) ---------- */
+var actx=null;
+function ping(kind){
+  if(S.game.muted)return;
+  if(window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches)return;
+  try{
+    actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    var o=actx.createOscillator(),g=actx.createGain();
+    o.connect(g);g.connect(actx.destination);
+    var f={xp:880,level:[660,990,1320],arise:523,title:740,gate:988,click:620}[kind]||740;
+    if(Array.isArray(f)){
+      o.frequency.setValueAtTime(f[0],actx.currentTime);
+      o.frequency.setValueAtTime(f[1],actx.currentTime+.08);
+      o.frequency.setValueAtTime(f[2],actx.currentTime+.16);
+    }else{o.frequency.value=f;}
+    o.type="triangle";
+    g.gain.setValueAtTime(.0001,actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.12,actx.currentTime+.02);
+    g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+ (Array.isArray(f)?.28:.22));
+    o.start();o.stop(actx.currentTime+.3);
+  }catch(e){}
+}
+
+/* ---------- System notification banner ---------- */
+var notifyT=null;
+function notif(tag,title,lines,duration){
+  var el=document.getElementById("sysnotify");if(!el)return;
+  var body=lines.map(function(l){return '<div class="sys-line">'+esc(l)+'</div>';}).join("");
+  el.innerHTML='<div class="sys-tag">[ SYSTEM ] '+esc(tag)+'</div>'+
+    '<div class="sys-title">'+esc(title)+'</div>'+body+
+    '<button class="sys-x" data-act="dismissnote">✕</button>';
+  el.classList.add("show");
+  clearTimeout(notifyT);
+  notifyT=setTimeout(function(){el.classList.remove("show");},duration||4000);
+}
+
+/* ---------- level-up burst ---------- */
+function levelBurst(level){
+  var b=document.getElementById("burst");if(!b)return;
+  b.innerHTML='<div class="ring"></div><div class="txt">LV. '+level+'</div>';
+  b.classList.add("show");
+  setTimeout(function(){b.classList.remove("show");},950);
+}
+
+/* ---------- stat allocation ---------- */
+function allocStat(stat){
+  if(["STR","VIT","AGI","INT","PER"].indexOf(stat)<0)return;
+  if(S.game.ap<=0){toast("No ability points");return;}
+  S.game.stats[stat]=(S.game.stats[stat]||10)+1;S.game.ap--;save();ping("click");render();
+}
+
+/* ---------- awakening intro ---------- */
+function awakening(){
+  var a=document.getElementById("awaken");
+  a.innerHTML='<div class="a-icon">⚔️</div>'+
+    '<div class="a-tag">[ The System ]</div>'+
+    '<div class="a-h">You have acquired the qualifications to be a Player.</div>'+
+    '<div class="a-sub">A System has chosen you, Hunter. Name yourself to begin the Awakening.</div>'+
+    '<input class="a-inp" id="awk-name" maxlength="20" placeholder="Enter your Hunter name">'+
+    '<button class="btn primary a-btn" data-act="awaken-confirm">▶ BEGIN AWAKENING</button>';
+  a.classList.add("show");
+}
+function confirmAwaken(){
+  var inp=document.getElementById("awk-name");
+  var name=(inp&&inp.value||"").trim()||"Hunter";
+  S.game.name=name;S.game.awakened=true;save();
+  document.getElementById("awaken").classList.remove("show");
+  ping("level");levelBurst(1);
+  grantTitle("awaken","The Awakened");save();
+  notif("AWAKENING COMPLETE","Welcome, "+name+".",
+    ["You are now an E-Rank Hunter.",
+     "Clear Gates, complete Daily Quests, and ARISE shadows to ascend.",
+     "The path to Shadow Monarch begins now."],5200);
+  render();
+}/* ---------- ROUTER + STATUS WINDOW ---------- */
+function stat(n,l){return '<div class="stat"><div class="n tnum">'+n+'</div><div class="l">'+l+'</div></div>';}
+var tab="home";
+var app=document.getElementById("app");
+var TABS=[
+ {id:"home",label:"STATUS",icon:'<path d="M12 2v6M12 22v-6M2 12h6M22 12h-6"/><circle cx="12" cy="12" r="3"/>'},
+ {id:"tests",label:"GATES",icon:'<path d="M3 21V8l9-5 9 5v13"/><path d="M9 21v-6h6v6"/><path d="M3 21h18"/>'},
+ {id:"cards",label:"ARMY",icon:'<path d="M12 2l3 4h-2v5h-2V6H9z"/><path d="M5 22V11l7-4 7 4v11"/><path d="M9 22v-5h6v5"/>'},
+ {id:"plan",label:"QUESTS",icon:'<path d="M9 11l2 2 4-4"/><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4M8 3v4"/>'},
+ {id:"stats",label:"RECORDS",icon:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'}
+];
+function renderTabs(){
+  var due=dueCards().length;
+  document.getElementById("tabbar").innerHTML=TABS.map(function(t){
+    var badge=(t.id==="cards"&&due>0)?'<span class="badge">'+due+'</span>':'';
+    return '<button class="tab'+(t.id===tab?" on":"")+'" data-tab="'+t.id+'">'+
+      '<span style="position:relative"><svg viewBox="0 0 24 24">'+t.icon+'</svg>'+badge+'</span>'+t.label+'</button>';
+  }).join("");
+}
+function go(t){tab=t;render();window.scrollTo(0,0);}
+function render(){
+  dailyReset();renderTabs();
+  if(tab==="home")app.innerHTML=topbar()+viewHome();
+  else if(tab==="tests")app.innerHTML=topbar()+viewTests();
+  else if(tab==="cards")app.innerHTML=topbar()+viewCards();
+  else if(tab==="plan")app.innerHTML=topbar()+viewPlan();
+  else if(tab==="stats")app.innerHTML=topbar()+viewStats();
+}
+function topbar(){
+  var g=S.game,r=rankOf(g.level);
+  var mute=g.muted?"🔇":"🔊";
+  return '<div class="topbar"><div class="wordmark"><span class="dot">SS</span>'+
+    '<span>NEET SS<small>The System · '+r.cls+'</small></span></div>'+
+    '<button class="icon-btn" data-act="mute" aria-label="Toggle sound">'+mute+'</button></div>';
+}
+
+/* ---------- STATUS (home) ---------- */
+function viewHome(){
+  var g=S.game,r=rankOf(g.level);
+  var need=xpNeeded(g.level),xpPct=pct(g.xp,need);
+  var h=S.history;
+  var avg=h.length?Math.round(h.reduce(function(x,rr){return x+pct(rr.correct,rr.total);},0)/h.length):0;
+  var due=dueCards().length;
+  var cd="";
+  if(S.examDate){var d=dayDiff(today(),S.examDate);cd=d>=0?d+'<small> days</small>':"passed";}
+  var st=streak();
+  var out="";
+
+  /* Hunter status panel */
+  out+='<div class="win" style="padding:18px">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'+
+      '<div><div class="eyebrow">Hunter</div><div style="font-size:22px;font-weight:700">'+esc(g.name||"Hunter")+'</div></div>'+
+      '<div class="rank '+rankCls(r.key)+'">'+r.label+'</div></div>'+
+    '<div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:6px">'+
+      '<div><span class="mono" style="font-size:30px;font-weight:700;color:var(--accent)">Lv. '+g.level+'</span>'+
+      ' <span class="dim mono" style="font-size:13px">'+g.xp+' / '+need+' XP</span></div>'+
+      '<div class="mono" style="color:var(--gold)">◆ '+g.ap+' AP</div></div>'+
+    '<div class="bar"><i style="width:'+xpPct+'%"></i></div>'+
+    '<div style="display:flex;gap:18px;margin-top:14px;flex-wrap:wrap">'+
+      '<div class="dim mono" style="font-size:11px">GATES CLEARED · <strong style="color:var(--accent)">'+g.gatesCleared+'</strong></div>'+
+      '<div class="dim mono" style="font-size:11px">SHADOWS · <strong style="color:var(--accent)">'+g.shadowCount+'</strong></div>'+
+      '<div class="dim mono" style="font-size:11px">STREAK · <strong style="color:var(--accent)">'+st+'d</strong></div></div>'+
+    (g.title?'<div class="mono" style="margin-top:12px;font-size:11px;color:var(--gold);letter-spacing:1px">TITLE · '+esc(g.title)+'</div>':'')+
+  '</div>';
+
+  /* Stat window */
+  out+='<div class="sec-h"><h2>Ability</h2></div><div class="win tight">';
+  out+='<div class="dim mono" style="font-size:11px;margin-bottom:8px">Spend ability points (◆ AP) to raise stats. '+g.ap+' available.</div>';
+  ["STR","VIT","AGI","INT","PER"].forEach(function(k){
+    var v=g.stats[k]||10;
+    out+='<div class="row" style="padding:9px 0"><div class="grow mono" style="font-size:13px">'+k+'</div>'+
+      '<span class="mono" style="color:var(--accent);font-weight:700">'+v+'</span>'+
+      '<button class="btn sm primary" data-stat="'+k+'"'+(g.ap<=0?' disabled':'')+'>+</button></div>';
+  });
+  out+='</div>';
+
+  /* Daily Quest */
+  var d=g.daily;var dq=Math.min(d.q,DAILY.q),dc=Math.min(d.cards,DAILY.cards),dg=Math.min(d.gates,DAILY.gates);
+  var allDone=dailyDone();
+  out+='<div class="sec-h"><h2>Daily Quest</h2></div><div class="win tight">';
+  out+='<div class="row" style="padding:8px 0"><div class="grow mono" style="font-size:13px">Answer '+DAILY.q+' questions</div><span class="mono dim">'+dq+'/'+DAILY.q+'</span>'+chk(dq>=DAILY.q)+'</div>';
+  out+='<div class="row" style="padding:8px 0"><div class="grow mono" style="font-size:13px">Review '+DAILY.cards+' cards</div><span class="mono dim">'+dc+'/'+DAILY.cards+'</span>'+chk(dc>=DAILY.cards)+'</div>';
+  out+='<div class="row" style="padding:8px 0"><div class="grow mono" style="font-size:13px">Clear '+DAILY.gates+' gate</div><span class="mono dim">'+dg+'/'+DAILY.gates+'</span>'+chk(dg>=DAILY.gates)+'</div>';
+  if(allDone){
+    out+=d.claimed?'<div class="mono glow" style="font-size:12px;text-align:center;padding:8px">✓ REWARD CLAIMED · +100 XP</div>'
+      :'<button class="btn primary" data-act="claimdaily" style="margin-top:8px">◆ CLAIM · +100 XP</button>';
+  }else{
+    out+='<div class="dim mono" style="font-size:10.5px;text-align:center;padding:6px">⚠ Failure to complete daily quests will trigger a penalty.</div>';
+  }
+  out+='</div>';
+  function chk(ok){return '<span class="box" style="'+(ok?'background:var(--accent);border-color:var(--accent);color:#03101f':'')+'">✓</span>';}
+
+  /* Exam = final gate */
+  out+='<div class="sec-h"><h2>Final Gate</h2></div>';
+  out+='<div class="card" style="background:linear-gradient(135deg,#1a1030,#0a1020);border:1px solid var(--line-glow)">'+
+    '<div class="eyebrow" style="color:var(--accent-ink)">The Examination</div>'+
+    (S.examDate?
+      '<div class="tnum mono" style="font-size:40px;font-weight:700;line-height:1;margin:6px 0 2px;color:var(--accent)">'+cd+'</div>'+
+      '<div class="dim" style="font-size:12.5px">Until the final gate · '+esc(S.examDate)+'</div>'
+      :'<div style="font-size:18px;margin:8px 0 10px">Set the date of your final gate</div>'+
+       '<button class="btn sm" data-act="goplan" style="background:rgba(56,189,248,.18);color:var(--accent);border-color:var(--accent)">Set date in Quests →</button>')+
+    (S.examDate?'<button class="btn sm ghost" data-act="goplan" style="margin-top:12px;color:var(--accent-ink);border-color:var(--line-glow)">Edit</button>':'')+
+    '</div>';
+
+  out+='<div class="sec-h"><h2>Quick Raid</h2></div>';
+  out+='<div class="card"><button class="btn primary" data-act="quick">▶  Enter Gate · 10 mixed MCQs</button>'+
+    '<div class="btn-row" style="margin-top:10px">'+
+      '<button class="btn" data-act="gocards">Extract '+due+' shadows</button>'+
+      '<button class="btn" data-act="gotests">Choose gate</button>'+
+    '</div></div>';
+
+  out+='<div class="card tight center dim mono" style="font-size:11px">'+allQ().length+' MCQs · '+allC().length+' cards · marking +4 / −1</div>';
+  return out;
+}
+
+/* ---------- GATES (tests) ---------- */
+var testCfg={subs:SUBJECTS.slice(),count:10,timed:true};
+function viewTests(){
+  var out="";
+  out+='<div class="sec-h"><h2>Open a Gate</h2></div>';
+  out+='<div class="win"><div class="eyebrow">Gate subjects</div><div class="chips" style="margin-top:10px">'+
+    SUBJECTS.map(function(s){var on=testCfg.subs.indexOf(s)>=0;
+      return '<button class="chip'+(on?" on":"")+'" data-sub="'+esc(s)+'">'+esc(SUB_ABBR[s])+'</button>';}).join("")+
+    '</div>';
+  out+='<div class="eyebrow" style="margin-top:16px">Gate size</div><div class="chips" style="margin-top:10px">'+
+    [10,20,30,50].map(function(n){return '<button class="chip'+(testCfg.count===n?" on":"")+'" data-cnt="'+n+'">'+n+'</button>';}).join("")+
+    '</div>';
+  out+='<div class="row" style="margin-top:14px;border:none;padding:4px 0"><div class="grow"><strong>Timed raid</strong>'+
+    '<div class="dim mono" style="font-size:11px">1 min/Q · auto-submit at 0</div></div>'+
+    '<button class="chip'+(testCfg.timed?" on":"")+'" data-act="toggletime">'+(testCfg.timed?"ON":"OFF")+'</button></div>';
+  out+='<button class="btn primary" data-act="starttest" style="margin-top:8px">⚔ ENTER GATE →</button></div>';
+
+  var avail=poolFor(testCfg.subs).length;
+  out+='<div class="card tight center dim mono" style="font-size:11.5px">'+avail+' questions in selected gates · clear-rank S≥90 A≥80 B≥70 C≥60 D≥45</div>';
+
+  out+='<div class="sec-h"><h2>Recent raids</h2>'+(S.history.length?'<a data-act="gostats">All →</a>':'')+'</div>';
+  if(!S.history.length){out+='<div class="card empty"><div class="big">⚔️</div>No gates cleared yet.<br>Enter one above to earn your first rank.</div>';}
+  else{
+    out+='<div class="card">'+S.history.slice().reverse().slice(0,5).map(function(r){
+      var p=pct(r.correct,r.total);var gr=gateRank(p);
+      return '<div class="row"><div class="grow"><strong>'+r.total+' Qs · '+r.subsLabel+'</strong>'+
+        '<div class="dim mono" style="font-size:11px">'+esc(r.date)+' · '+r.score+'/'+r.maxScore+'</div></div>'+
+        '<span class="rank '+rankCls(gr)+'" style="font-size:11px">'+gr+'</span></div>';
+    }).join("")+'</div>';
+  }
+  out+='<div class="sec-h"><h2>Forge a question</h2></div>'+addQForm();
+  return out;
+}
+function poolFor(subs){return allQ().filter(function(q){return subs.indexOf(q.s)>=0;});}
+function addQForm(){
+  return '<div class="card"><label class="f">Question</label><textarea class="inp" id="aq-q" placeholder="Stem of the question"></textarea>'+
+    ['A','B','C','D'].map(function(k,i){return '<label class="f">Option '+k+(i===0?' (correct marked below)':'')+'</label><input class="inp" id="aq-o'+i+'">';}).join("")+
+    '<label class="f">Correct option</label><select class="inp" id="aq-a"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select>'+
+    '<label class="f">Subject</label><select class="inp" id="aq-s">'+SUBJECTS.map(function(s){return '<option>'+esc(s)+'</option>';}).join("")+'</select>'+
+    '<label class="f">Explanation (optional)</label><textarea class="inp" id="aq-e"></textarea>'+
+    '<button class="btn primary" data-act="addq" style="margin-top:12px">Add question</button></div>';
+}
+
+/* ---------- ARMY (cards) ---------- */
+var browseSub="all";
+function viewCards(){
+  var due=dueCards();
+  var g=S.game;
+  var out="";
+  out+='<div class="card" style="background:linear-gradient(135deg,#0c1f3a,#0a1020);border:1px solid var(--accent)">'+
+    '<div class="eyebrow" style="color:var(--accent)">Shadow Extraction</div>'+
+    '<div class="mono" style="font-size:38px;font-weight:700;line-height:1;margin:6px 0;color:var(--accent)">'+due.length+'<small style="font-size:15px;font-weight:600"> ready</small></div>'+
+    (due.length?'<button class="btn" data-act="review" style="background:var(--accent);color:#03101f;border:none;margin-top:6px">⚔ EXTRACT SHADOWS →</button>'
+      :'<div class="dim" style="font-size:13px">No shadows due. ARISE awaits the next review. 🗡️</div>')+'</div>';
+
+  out+='<div class="grid g3">'+stat(g.shadowCount,"Shadows")+stat(due.length,"Due now")+stat(allC().length,"Total cards")+'</div>';
+
+  /* Shadow army display */
+  out+='<div class="sec-h"><h2>Shadow Army</h2></div>';
+  if(!g.shadowCount){out+='<div class="card empty dim mono" style="font-size:12px">No shadows yet. Master a card (review it until its interval ≥ 21d) to ARISE your first shadow soldier.</div>';}
+  else{
+    out+='<div class="army-grid">';
+    var named=SHADOW_MILES.filter(function(m,i){return m>0&&g.shadowCount>=m;});
+    named.forEach(function(m,i){var idx=SHADOW_MILES.indexOf(m);
+      out+='<div class="shadow"><div class="sg">👤</div><div class="sn">'+SHADOW_NAMES[idx]+'</div></div>';});
+    var unnamed=Math.min(g.shadowCount-named.length,24-named.length);
+    for(var u=0;u<unnamed;u++){out+='<div class="shadow"><div class="sg" style="opacity:.6">👤</div><div class="sn">Soldier</div></div>';}
+    out+='</div>';
+    if(g.shadowCount>named.length+unnamed)out+='<div class="dim mono center" style="font-size:11px;margin-top:10px">+ '+(g.shadowCount-named.length-unnamed)+' more in the ranks</div>';
+  }
+
+  out+='<div class="sec-h"><h2>Browse deck</h2><a data-act="addcard">+ Add card</a></div>';
+  out+='<div class="chips" style="margin-bottom:12px"><button class="chip'+(browseSub==="all"?" on":"")+'" data-bsub="all">All</button>'+
+    SUBJECTS.map(function(s){return '<button class="chip'+(browseSub===s?" on":"")+'" data-bsub="'+esc(s)+'">'+esc(SUB_ABBR[s])+'</button>';}).join("")+'</div>';
+
+  var list=allC().filter(function(c){return browseSub==="all"||c.s===browseSub;});
+  out+='<div class="card">'+list.map(function(c){
+    var bk=cardBucket(c.id);var r=srsOf(c.id);
+    var pillc=bk==="mastered"?"good":bk==="learning"?"warn":"acc";
+    var meta=bk==="new"?"New":(r.due<=today()?"Due now":"Due "+r.due);
+    var custom=S.customC.indexOf(c)>=0;
+    var isShadow=g.shadowIds.indexOf(c.id)>=0;
+    return '<div class="row"><div class="grow"><strong style="font-weight:600">'+esc(c.f)+'</strong>'+
+      '<div class="dim mono" style="font-size:11px">'+esc(SUB_ABBR[c.s])+' · '+meta+(isShadow?' · ⚔ shadow':'')+'</div></div>'+
+      '<span class="pill '+pillc+'">'+bk+'</span>'+
+      (custom?'<button class="pill bad" data-delc="'+c.id+'">✕</button>':'')+'</div>';
+  }).join("")+'</div>';
+  return out;
+}
+
+/* ---------- QUESTS (plan) ---------- */
+function viewPlan(){
+  var out="";
+  out+='<div class="sec-h"><h2>Final gate date</h2></div>';
+  out+='<div class="card"><label class="f">Your NEET SS date</label>'+
+    '<input class="inp" type="date" id="exam-date" value="'+esc(S.examDate)+'">'+
+    '<button class="btn primary" data-act="savedate" style="margin-top:12px">Save date</button></div>';
+
+  var totalT=0,doneT=0;
+  SUBJECTS.forEach(function(s){SYLLABUS[s].forEach(function(t){totalT++;if(S.planner[s+"::"+t])doneT++;});});
+  out+='<div class="card tight"><div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">'+
+    '<strong class="mono" style="font-size:13px;letter-spacing:1px">Overall quest log</strong><span class="tnum mono" style="font-size:20px;font-weight:700;color:var(--accent)">'+pct(doneT,totalT)+'%</span></div>'+
+    '<div class="bar"><i style="width:'+pct(doneT,totalT)+'%"></i></div>'+
+    '<div class="dim mono" style="font-size:11px;margin-top:7px">'+doneT+' / '+totalT+' topics cleared</div></div>';
+
+  SUBJECTS.forEach(function(s){
+    var tops=SYLLABUS[s].concat((S.planner["_extra_"+s]||[]));
+    var done=tops.filter(function(t){return S.planner[s+"::"+t];}).length;
+    out+='<div class="sec-h"><h2 style="font-size:12px">'+esc(s)+'</h2><span class="dim tnum mono" style="font-size:12px">'+done+'/'+tops.length+'</span></div>';
+    out+='<div class="card tight"><div class="bar '+accColor(pct(done,tops.length))+'" style="margin-bottom:6px"><i style="width:'+pct(done,tops.length)+'%"></i></div>';
+    out+=tops.map(function(t){var on=S.planner[s+"::"+t];
+      return '<div class="chk'+(on?" on":"")+'" data-topic="'+esc(s)+'::'+esc(t)+'">'+
+        '<span class="box">✓</span><span class="lbl grow">'+esc(t)+'</span></div>';}).join("");
+    out+='<div class="chk" style="border-top:1px dashed var(--line)"><input class="inp" style="padding:8px 10px" id="extra-'+esc(SUB_ABBR[s])+'" placeholder="Add a topic…">'+
+      '<button class="btn sm primary" data-addtopic="'+esc(s)+'">Add</button></div>';
+    out+='</div>';
+  });
+  return out;
+}
+
+/* ---------- RECORDS (stats) ---------- */
+function viewStats(){
+  var h=S.history,out="";var g=S.game;
+  var totQ=h.reduce(function(x,r){return x+r.total;},0);
+  var totC=h.reduce(function(x,r){return x+r.correct;},0);
+  var avg=h.length?Math.round(h.reduce(function(x,r){return x+pct(r.correct,r.total);},0)/h.length):0;
+  var best=h.reduce(function(x,r){return Math.max(x,pct(r.correct,r.total));},0);
+  out+='<div class="grid g2">'+stat(h.length,"Gates raided")+stat(avg+'<small>%</small>',"Avg accuracy")+
+    stat(best+'<small>%</small>',"Best clear")+stat(totQ,"Questions done")+'</div>';
+
+  out+='<div class="sec-h"><h2>Accuracy by gate</h2></div><div class="card">';
+  var any=false;
+  SUBJECTS.forEach(function(s){
+    var c=0,t=0;h.forEach(function(r){if(r.perSub&&r.perSub[s]){c+=r.perSub[s].c;t+=r.perSub[s].t;}});
+    if(t>0){any=true;var p=pct(c,t);
+      out+='<div style="margin-bottom:13px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">'+
+        '<span>'+esc(s)+'</span><span class="tnum muted mono">'+p+'% ('+c+'/'+t+')</span></div>'+
+        '<div class="bar '+accColor(p)+'"><i style="width:'+p+'%"></i></div></div>';}
+  });
+  out+=(any?"":'<div class="empty dim mono" style="font-size:12px">Clear a gate to see accuracy breakdown.</div>')+'</div>';
+
+  /* Titles */
+  out+='<div class="sec-h"><h2>Titles</h2></div><div class="card">';
+  TITLE_DEFS.forEach(function(td){var has=hasTitle(td.id);
+    out+='<div class="row" style="padding:9px 0"><div class="grow mono" style="font-size:12.5px;'+(has?'':'opacity:.4')+'">'+esc(td.label)+'</div>'+
+      '<span class="pill '+(has?'acc':'')+'">'+(has?'HELD':'LOCKED')+'</span></div>';});
+  out+='</div>';
+
+  /* Shadow roster */
+  out+='<div class="sec-h"><h2>Shadow roster</h2></div><div class="grid g3">'+
+    stat(g.shadowCount,"Shadows")+stat(g.gatesCleared,"Gates cleared")+stat(streak()+'<small>d</small>',"Streak")+'</div>';
+
+  out+='<div class="sec-h"><h2>Streak</h2></div>';
+  out+='<div class="card tight" style="display:flex;align-items:center;gap:12px"><div style="font-size:24px">'+(streak()>0?"🔥":"🌱")+'</div>'+
+    '<div class="grow"><strong>'+streak()+' days</strong><div class="dim mono" style="font-size:11px">'+S.activeDays.length+' active days total · Lv. '+g.level+' '+rankOf(g.level).label+'</div></div></div>';
+
+  out+='<div class="sec-h"><h2>Raid history</h2></div>';
+  if(!h.length){out+='<div class="card empty dim mono" style="font-size:12px">No raids recorded.</div>';}
+  else{out+='<div class="card">'+h.slice().reverse().map(function(r){var p=pct(r.correct,r.total);var gr=gateRank(p);
+    return '<div class="row"><div class="grow"><strong>'+r.subsLabel+' · '+r.total+' Qs</strong>'+
+      '<div class="dim mono" style="font-size:11px">'+esc(r.date)+' · '+r.correct+'✓ '+r.wrong+'✗ · '+r.score+'/'+r.maxScore+'</div></div>'+
+      '<span class="rank '+rankCls(gr)+'" style="font-size:11px">'+gr+'</span></div>';}).join("")+'</div>';}
+
+  out+='<div class="sec-h"><h2>Your data</h2></div><div class="card">'+
+    '<div class="dim mono" style="font-size:11.5px;margin-bottom:10px">All progress lives on this device only. Back up or transfer your Hunter data here.</div>'+
+    '<div class="btn-row"><button class="btn" data-act="export">Export</button><button class="btn" data-act="import">Import</button></div>'+
+    '<button class="btn ghost" data-act="reset" style="margin-top:10px;color:var(--bad);border-color:var(--bad)">Reset all progress</button></div>';
+  return out;
+}/* =========================================================
+   TEST RUNNER (overlay)
+   ========================================================= */
+var ov=document.getElementById("overlay");
+var run=null,timerId=null;
+function startTest(){
+  var pool=poolFor(testCfg.subs);
+  if(pool.length<1){toast("No questions in those subjects");return;}
+  var qs=shuffle(pool).slice(0,Math.min(testCfg.count,pool.length));
+  if(qs.length<1){toast("No questions selected");return;}
+  run={qs:qs,ans:{},mark:{},i:0,started:Date.now(),
+    dur:testCfg.timed?qs.length*60:0,left:qs.length*60,review:false,finished:false};
+  ov.classList.add("open");document.body.style.overflow="hidden";
+  if(testCfg.timed){timerId=setInterval(tick,1000);}
+  drawRunner();
+}
+function tick(){if(!run)return;run.left--;if(run.left<=0){run.left=0;clearInterval(timerId);finishTest();}else drawRunner(true);}
+function fmtTime(s){var m=Math.floor(s/60);return (m<10?"0":"")+m+":"+(s%60<10?"0":"")+(s%60);}
+function drawRunner(timeOnly){
+  if(!run)return;
+  if(timeOnly){var el=document.getElementById("rtimer");if(el){el.textContent=fmtTime(run.left);el.className="timer"+(run.left<60?" low":"");}return;}
+  var q=run.qs[run.i],chosen=run.ans[q.id];
+  var head='<div class="ov-top"><button class="btn sm ghost" data-act="quit">✕ Quit</button>'+
+    '<div class="dim tnum" style="font-size:13px">Q '+(run.i+1)+' / '+run.qs.length+'</div>'+
+    (testCfg.timed?'<span id="rtimer" class="timer'+(run.left<60?" low":"")+'">'+fmtTime(run.left)+'</span>':'<span class="dim" style="font-size:12px">Untimed</span>')+'</div>';
+  var body='<div class="ov-body"><div class="eyebrow" style="margin-bottom:6px">'+esc(SUB_ABBR[q.s])+' · '+esc(q.t)+'</div>'+
+    '<div style="font-family:var(--serif);font-size:20px;line-height:1.4;font-weight:600;margin-bottom:18px">'+esc(q.q)+'</div>';
+  q.o.forEach(function(opt,i){
+    body+='<button class="opt'+(chosen===i?" sel":"")+'" data-choose="'+i+'"><span class="k">'+"ABCD"[i]+'</span><span>'+esc(opt)+'</span></button>';
+  });
+  body+='</div>';
+  var foot='<div style="padding-top:10px">'+
+    '<div class="btn-row" style="margin-bottom:10px">'+
+      '<button class="btn sm" data-act="markq">'+(run.mark[q.id]?"★ Marked":"☆ Mark")+'</button>'+
+      '<button class="btn sm" data-act="showpal">◫ Grid</button></div>'+
+    '<div class="btn-row"><button class="btn" data-act="prev"'+(run.i===0?" disabled":"")+'>← Prev</button>'+
+    (run.i===run.qs.length-1?'<button class="btn primary" data-act="submit">Submit test</button>'
+      :'<button class="btn primary" data-act="next">Next →</button>')+'</div></div>';
+  ov.innerHTML=head+body+foot;
+}
+function showPalette(){
+  if(!run)return;
+  var g='<div class="ov-top"><strong>Questions</strong><button class="btn sm ghost" data-act="closepal">Close</button></div>'+
+    '<div class="ov-body"><div class="palette">'+run.qs.map(function(q,i){
+      var cls="pnum"+(run.ans[q.id]!=null?" ans":"")+(run.mark[q.id]?" mark":"")+(i===run.i?" cur":"");
+      return '<button class="'+cls+'" data-jump="'+i+'">'+(i+1)+'</button>';}).join("")+'</div>'+
+    '<div class="dim" style="font-size:12px;margin-top:16px;display:flex;gap:14px;flex-wrap:wrap">'+
+      '<span>▮ answered</span><span>▮ marked</span><span>▮ current</span></div>'+
+    '<button class="btn primary" data-act="submit" style="margin-top:20px">Submit test</button></div>';
+  ov.innerHTML=g;
+}
+function finishTest(){
+  if(!run)return;if(run.finished)return;run.finished=true;
+  if(timerId){clearInterval(timerId);timerId=null;}
+  var correct=0,wrong=0,unatt=0,perSub={};
+  run.qs.forEach(function(q){
+    perSub[q.s]=perSub[q.s]||{c:0,t:0};perSub[q.s].t++;
+    var ch=run.ans[q.id];
+    if(ch==null)unatt++;
+    else if(ch===q.a){correct++;perSub[q.s].c++;}
+    else wrong++;
+  });
+  var score=correct*4-wrong*1,maxScore=run.qs.length*4;
+  var subs=testCfg.subs.map(function(s){return SUB_ABBR[s];});
+  var subsLabel=subs.length===SUBJECTS.length?"All subjects":subs.join(", ");
+  var rec={date:today(),total:run.qs.length,correct:correct,wrong:wrong,unatt:unatt,
+    score:score,maxScore:maxScore,perSub:perSub,subsLabel:subsLabel,
+    timeSec:Math.round((Date.now()-run.started)/1000)};
+  S.history.push(rec);S.lastDetails={qs:run.qs.map(function(q){return {q:q,ch:run.ans[q.id]};})};
+  markActive();save();
+  drawScorecard(rec);
+}
+function drawScorecard(r){
+  if(!r){toast("Nothing to show");return;}
+  var p=pct(r.correct,r.total);
+  var out='<div class="ov-top"><strong>Scorecard</strong><button class="btn sm ghost" data-act="closerun">Done</button></div><div class="ov-body">';
+  out+='<div class="card center" style="background:linear-gradient(135deg,var(--accent),var(--accent-ink));border:none;color:#fff">'+
+    '<div class="eyebrow" style="color:rgba(255,255,255,.8)">Score (with +4 / −1)</div>'+
+    '<div class="tnum" style="font-family:var(--serif);font-size:48px;font-weight:700;line-height:1;margin:6px 0">'+r.score+'<small style="font-size:20px;font-weight:600">/'+r.maxScore+'</small></div>'+
+    '<div style="color:rgba(255,255,255,.9)">'+p+'% accuracy · '+fmtTime(r.timeSec)+' taken</div></div>';
+  out+='<div class="grid g3"><div class="stat"><div class="n tnum" style="color:var(--good)">'+r.correct+'</div><div class="l">Correct</div></div>'+
+    '<div class="stat"><div class="n tnum" style="color:var(--bad)">'+r.wrong+'</div><div class="l">Wrong</div></div>'+
+    '<div class="stat"><div class="n tnum" style="color:var(--ink-3)">'+r.unatt+'</div><div class="l">Skipped</div></div></div>';
+  out+='<div class="sec-h"><h2>By subject</h2></div><div class="card">';
+  Object.keys(r.perSub).forEach(function(s){var ps=r.perSub[s],pp=pct(ps.c,ps.t);
+    out+='<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:5px"><span>'+esc(s)+'</span><span class="tnum muted">'+ps.c+'/'+ps.t+'</span></div><div class="bar '+accColor(pp)+'"><i style="width:'+pp+'%"></i></div></div>';});
+  out+='</div>';
+  out+='<button class="btn primary" data-act="reviewtest" style="margin-bottom:10px">Review answers & explanations</button>';
+  out+='<button class="btn" data-act="closerun">Back to app</button></div>';
+  ov.innerHTML=out;
+}
+function drawReview(){
+  var d=S.lastDetails;if(!d){toast("Nothing to review");return;}
+  var out='<div class="ov-top"><button class="btn sm ghost" data-act="backscore">← Back</button><strong>Answer review</strong><span style="width:60px"></span></div><div class="ov-body">';
+  d.qs.forEach(function(item,idx){
+    var q=item.q,ch=item.ch;
+    out+='<div class="card"><div class="eyebrow" style="margin-bottom:6px">Q'+(idx+1)+' · '+esc(SUB_ABBR[q.s])+'</div>'+
+      '<div style="font-family:var(--serif);font-size:17px;line-height:1.4;font-weight:600;margin-bottom:12px">'+esc(q.q)+'</div>';
+    q.o.forEach(function(opt,i){
+      var cls="opt";if(i===q.a)cls+=" correct";else if(i===ch)cls+=" wrong";
+      out+='<div class="'+cls+'" style="margin-bottom:8px;padding:11px"><span class="k">'+"ABCD"[i]+'</span><span>'+esc(opt)+
+        (i===q.a?' &nbsp;✓':(i===ch?' &nbsp;✗':''))+'</span></div>';
+    });
+    if(ch==null)out+='<div class="pill warn" style="margin:2px 0 8px">Skipped</div> ';
+    out+='<div class="dim" style="font-size:13.5px;line-height:1.5;background:var(--surface-2);padding:11px;border-radius:11px;margin-top:6px"><strong style="color:var(--accent-ink)">Why:</strong> '+esc(q.e)+'</div></div>';
+  });
+  out+='<button class="btn" data-act="closerun">Close</button></div>';
+  ov.innerHTML=out;
+}
+function closeRun(){ov.classList.remove("open");ov.innerHTML="";document.body.style.overflow="";if(timerId){clearInterval(timerId);timerId=null;}run=null;render();}
+
+/* =========================================================
+   CARD REVIEW (overlay)
+   ========================================================= */
+var rev=null;
+function startReview(){
+  var due=dueCards();if(!due.length){toast("No cards due");return;}
+  rev={cards:shuffle(due),i:0,show:false,done:0};
+  ov.classList.add("open");document.body.style.overflow="hidden";drawCard();
+}
+function drawCard(){
+  if(rev.i>=rev.cards.length){
+    ov.innerHTML='<div class="ov-top"><span></span><strong>Review complete</strong><span></span></div>'+
+      '<div class="ov-body" style="display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:14px">'+
+      '<div style="font-size:52px">🎉</div><div style="font-family:var(--serif);font-size:26px;font-weight:700">'+rev.done+' cards reviewed</div>'+
+      '<div class="dim">They\'ll resurface exactly when you\'re about to forget them.</div>'+
+      '<button class="btn primary" data-act="closecard" style="max-width:220px">Done</button></div>';return;
+  }
+  var c=rev.cards[rev.i];
+  var out='<div class="ov-top"><button class="btn sm ghost" data-act="closecard">✕ Close</button>'+
+    '<div class="dim tnum" style="font-size:13px">'+(rev.i+1)+' / '+rev.cards.length+'</div><span style="width:60px"></span></div>';
+  out+='<div class="ov-body" style="display:flex;flex-direction:column;justify-content:center">';
+  out+='<div class="eyebrow center" style="margin-bottom:12px">'+esc(SUB_ABBR[c.s])+'</div>';
+  out+='<div class="fc"><div class="side">Question</div><div class="q">'+esc(c.f)+'</div>'+
+    (rev.show?'<div class="hr" style="width:60%"></div><div class="side">Answer</div><div class="a">'+esc(c.b)+'</div>':'')+'</div>';
+  out+='</div>';
+  if(!rev.show){
+    out+='<button class="btn primary" data-act="flip" style="margin-top:14px">Show answer</button>';
+  }else{
+    out+='<div class="grade" style="margin-top:14px">'+
+      '<button class="again" data-grade="1">Again<small>&lt;10 m</small></button>'+
+      '<button class="hard" data-grade="3">Hard<small>soon</small></button>'+
+      '<button class="good" data-grade="4">Good<small>space</small></button>'+
+      '<button class="easy" data-grade="5">Easy<small>later</small></button></div>';
+  }
+  ov.innerHTML=out;
+}
+function closeCard(){ov.classList.remove("open");ov.innerHTML="";document.body.style.overflow="";rev=null;render();}
+function addCard(){
+  var f=prompt("Front (question / prompt):");if(!f)return;
+  var b=prompt("Back (answer):");if(!b)return;
+  var s=prompt("Subject — type one of: MED, SURG, OBG, PED","MED")||"MED";
+  var map={MED:"General Medicine",SURG:"General Surgery",OBG:"Obstetrics & Gynaecology",PED:"Pediatrics"};
+  var subj=map[s.toUpperCase().trim()]||"General Medicine";
+  S.customC.push({id:"u"+Date.now(),s:subj,f:f.trim(),b:b.trim()});save();toast("Card added");render();
+}
+function addQuestion(){
+  var q=(document.getElementById("aq-q").value||"").trim();
+  var o=[0,1,2,3].map(function(i){return (document.getElementById("aq-o"+i).value||"").trim();});
+  var a=+document.getElementById("aq-a").value;
+  var s=document.getElementById("aq-s").value;
+  var e=(document.getElementById("aq-e").value||"").trim()||"No explanation added.";
+  if(!q||o.some(function(x){return !x;})){toast("Fill the question and all 4 options");return;}
+  S.customQ.push({id:"u"+Date.now(),s:s,t:"Custom",q:q,o:o,a:a,e:e});save();toast("Question added");render();
+}
+function exportData(){
+  var blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"});
+  try{var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download="neetss-backup.json";
+    document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1000);toast("Backup downloaded");}
+  catch(e){prompt("Copy this backup text:",JSON.stringify(S));}
+}
+function importData(){
+  var t=prompt("Paste a previously exported backup (JSON):");if(!t)return;
+  try{var o=JSON.parse(t);if(o&&typeof o==="object"&&!Array.isArray(o)){localStorage.setItem(KEY,JSON.stringify(o));S=load();save();toast("Data imported");go("home");}else{toast("Not a valid backup object");}}
+  catch(e){toast("Could not read that backup");}
+}
+/* =========================================================
+   EVENTS + game hooks + boot
+   ========================================================= */
+
+/* wrap finishTest so a completed gate feeds the System */
+var _finishTestOrig=finishTest;
+finishTest=function(){
+  if(run&&run._sysScored)return;
+  var answered=0;
+  if(run){run.qs.forEach(function(q){if(run.ans[q.id]!=null)answered++;});run._sysScored=true;}
+  _finishTestOrig.apply(this,arguments);
+  var rec=S.history[S.history.length-1]; if(!rec)return;
+  dailyReset();
+  var p=pct(rec.correct,rec.total);
+  S.game.daily.q+=answered;
+  var gr=gateRank(p),cleared=p>=45;
+  if(cleared){S.game.gatesCleared++;S.game.daily.gates++;}
+  save();
+  var xp=rec.correct*8+(cleared?60:0)+(gr==="S"?80:gr==="A"?40:gr==="B"?20:0);
+  awardXP(xp,"gate · "+gr+"-rank clear");
+  checkTitles();
+  ping("gate");
+  notif(cleared?"GATE CLEARED":"GATE COLLAPSED",
+    cleared?("Clear-rank "+gr+" · "+p+"%"):"Rank E · "+p+"% — the gate held",
+    [(cleared?("+"+xp+" XP · "+(gr==="S"?"flawless raid":gr==="A"?"superior":gr==="B"?"clean":"passed")):"No XP bonus — retreat and retry"),
+     rec.correct+" correct · "+rec.wrong+" wrong · "+rec.unatt+" skipped"],5400);
+};
+
+document.addEventListener("click",function(ev){
+  var el=ev.target.closest("[data-tab],[data-act],[data-sub],[data-cnt],[data-bsub],[data-topic],[data-addtopic],[data-choose],[data-jump],[data-grade],[data-delc],[data-flip],[data-stat]");
+  if(!el)return;
+  var d=el.dataset;
+
+  if(d.tab){go(d.tab);return;}
+
+  /* config */
+  if(d.sub!=null){var s=d.sub,ix=testCfg.subs.indexOf(s);if(ix>=0){if(testCfg.subs.length>1)testCfg.subs.splice(ix,1);}else testCfg.subs.push(s);render();return;}
+  if(d.cnt){testCfg.count=+d.cnt;render();return;}
+  if(d.bsub){browseSub=d.bsub;render();return;}
+  if(d.stat){allocStat(d.stat);return;}
+
+  /* planner */
+  if(d.topic){S.planner[d.topic]=!S.planner[d.topic];markActive();save();render();return;}
+  if(d.addtopic){var inp=document.getElementById("extra-"+SUB_ABBR[d.addtopic]);var v=(inp&&inp.value||"").trim();
+    if(v){S.planner["_extra_"+d.addtopic]=(S.planner["_extra_"+d.addtopic]||[]);S.planner["_extra_"+d.addtopic].push(v);save();render();}return;}
+
+  /* runner interactions */
+  if(d.choose!=null&&run){run.ans[run.qs[run.i].id]=+d.choose;drawRunner();return;}
+  if(d.jump!=null&&run){run.i=Math.max(0,Math.min(+d.jump,run.qs.length-1));drawRunner();return;}
+  if(d.grade!=null&&rev){
+    var card=rev.cards[rev.i],grade=+d.grade;
+    var prevInt=srsOf(card.id).interval;
+    gradeCard(card.id,grade);
+    dailyReset();S.game.daily.cards=(S.game.daily.cards||0)+1;
+    if(grade>=4)awardXP(5,"card review");
+    if(grade>=3&&prevInt<21&&srsOf(card.id).interval>=21){arise(card.id);checkTitles();}
+    save();
+    rev.done++;rev.i++;rev.show=false;drawCard();return;
+  }
+  if(d.delc){S.customC=S.customC.filter(function(c){return c.id!==d.delc;});save();render();toast("Card deleted");return;}
+
+  var a=d.act;
+  switch(a){
+    case "dismissnote":document.getElementById("sysnotify").classList.remove("show");clearTimeout(notifyT);break;
+    case "mute":S.game.muted=!S.game.muted;save();render();toast(S.game.muted?"Sound off":"Sound on");break;
+    case "claimdaily":
+      if(dailyDone()&&!S.game.daily.claimed){S.game.daily.claimed=true;save();awardXP(100,"daily quest");checkTitles();ping("title");
+        notif("DAILY QUEST COMPLETE","Reward claimed · +100 XP",
+          ["The System acknowledges your diligence, Player.","Return tomorrow for a new quest."],4600);render();}
+      break;
+    case "awaken-confirm":confirmAwaken();break;
+    case "goplan":go("plan");break;
+    case "gocards":go("cards");break;
+    case "gotests":go("tests");break;
+    case "gostats":go("stats");break;
+    case "quick":testCfg.subs=SUBJECTS.slice();testCfg.count=10;testCfg.timed=true;startTest();break;
+    case "toggletime":testCfg.timed=!testCfg.timed;render();break;
+    case "starttest":startTest();break;
+    case "next":if(!run)return;run.i=Math.min(run.i+1,run.qs.length-1);drawRunner();break;
+    case "prev":if(!run)return;run.i=Math.max(run.i-1,0);drawRunner();break;
+    case "markq":if(!run)return;run.mark[run.qs[run.i].id]=!run.mark[run.qs[run.i].id];drawRunner();break;
+    case "showpal":showPalette();break;
+    case "closepal":drawRunner();break;
+    case "submit":if(confirm("Submit the raid now?"))finishTest();break;
+    case "quit":if(confirm("Retreat from this gate without saving?"))closeRun();break;
+    case "reviewtest":drawReview();break;
+    case "backscore":drawScorecard(S.history[S.history.length-1]);break;
+    case "closerun":closeRun();break;
+    case "review":startReview();break;
+    case "flip":rev.show=true;drawCard();break;
+    case "closecard":closeCard();break;
+    case "addcard":addCard();break;
+    case "savedate":var di=document.getElementById("exam-date");if(di&&di.value){S.examDate=di.value;save();toast("Final gate date saved");render();}break;
+    case "addq":addQuestion();break;
+    case "export":exportData();break;
+    case "import":importData();break;
+    case "reset":if(confirm("Erase ALL progress, shadows, titles and history on this device?")){localStorage.removeItem(KEY);S=load();toast("World reset");go("home");if(!S.game.awakened)awakening();}break;
+  }
+});
+
+/* ---------- boot ---------- */
+dailyReset();
+if(!S.game.awakened){awakening();}
+render();
+})();
+</script>
